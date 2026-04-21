@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"ProductsPage: HTTP %{http_code}\\\\n\" http://localhost:5175/src/components/pages/admin/ProductsPage.jsx)",
+      "Bash(curl -s http://localhost:5175/src/components/pages/admin/ProductsPage.jsx)"
+    ]
+  }
+}

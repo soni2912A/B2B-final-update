@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5" />
+<title>B2B Corporate Bakery Platform</title>
+<meta name="description" content="End-to-end B2B bakery operations: staff celebrations, recurring corporate orders, deliveries, invoicing and analytics — Multiple modules, Admin + Corporate portals." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/landing-styles.css" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><text y='52' font-size='56'>🥐</text></svg>" />
+</head>
+<body>
+
+<!-- ============== NAVBAR ============== -->
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a href="#home" class="brand" aria-label="B2B Corporate Bakery Platform home">
+      <span class="brand__mark">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="g1" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#ffb347"/><stop offset="1" stop-color="#ff6b6b"/></linearGradient></defs><circle cx="20" cy="20" r="18" fill="url(#g1)"/><path d="M10 22c3-6 7-9 10-9s7 3 10 9c-3 3-7 5-10 5s-7-2-10-5z" fill="#fff6e0" opacity=".9"/><circle cx="16" cy="20" r="1.2" fill="#7a4a2c"/><circle cx="20" cy="21" r="1.2" fill="#7a4a2c"/><circle cx="24" cy="20" r="1.2" fill="#7a4a2c"/></svg>
+      </span>
+      <span class="brand__name">B2B Corporate Bakery Platform</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      <a href="#platform">Platform</a>
+      <a href="#modules">Modules</a>
+      <a href="#admin">Admin Portal</a>
+      <a href="#corporate">Corporate Portal</a>
+      <a href="#workflow">Workflow</a>
+      <a href="#contact">Contact</a>
+      <a href="http://localhost:5173/login" class="nav__mobile-cta">Login to Portal →</a>
+      <a href="http://localhost:5173/register" class="nav__mobile-cta nav__mobile-cta--primary">Start Free Trial 🚀</a>
+    </nav>
+
+    <div class="nav__tools">
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle color theme" aria-pressed="false">
+        <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke-linecap="round"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <a href="http://localhost:5173/login" class="btn btn--ghost">Login to Portal →</a>
+      <a href="http://localhost:5173/register" class="btn btn--primary" style="margin-left:8px">Start Free Trial 🚀</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============== HERO ============== -->
+<section class="hero" id="home">
+  <div class="hero__bg" aria-hidden="true">
+    <div class="blob blob--a"></div>
+    <div class="blob blob--b"></div>
+    <div class="blob blob--c"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <div class="hero__inner">
+    <div class="hero__copy">
+      <span class="eyebrow">🥐 B2B Corporate Bakery Platform</span>
+      <h1 class="h1">
+        Turn every <span class="grad">birthday, anniversary</span> and team milestone into a delivered, invoiced gift.
+      </h1>
+      <p class="lede">
+        B2B Corporate Bakery Platform orchestrates staff celebrations, recurring bulk orders, delivery routing, invoicing and analytics across
+        21 integrated modules — with an <strong>Admin Portal</strong> for your gift management ops and a <strong>Corporate Portal</strong>
+        for your clients.
+      </p>
+
+      <div class="hero__cta">
+        <a href="http://localhost:5173/register" class="btn btn--primary">Start Free Trial 🚀</a>
+        <a href="http://localhost:5173/login" class="btn btn--outline">Login to Portal →</a>
+      </div>
+
+      <ul class="hero__chips" aria-label="Highlights">
+        <li>✦ 2-day pre-delivery alerts</li>
+        <li>✦ Role-based multi-user access</li>
+        <li>✦ Excel / CSV bulk import</li>
+        <li>✦ Tile + list views everywhere</li>
+      </ul>
+    </div>
+
+    <div class="hero__visual" aria-hidden="true">
+      <!-- 3D floating cake scene -->
+      <div class="scene">
+        <div class="ring ring--1"></div>
+        <div class="ring ring--2"></div>
+        <div class="ring ring--3"></div>
+
+        <div class="cake" data-depth="0.18">
+          <div class="cake__layer cake__layer--bottom"></div>
+          <div class="cake__layer cake__layer--middle"></div>
+          <div class="cake__layer cake__layer--top"></div>
+          <div class="cake__candle">
+            <span class="flame"></span>
+          </div>
+          <div class="cake__plate"></div>
+        </div>
+
+        <!-- floating module cards -->
+        <div class="floatcard floatcard--1" data-depth="0.06">
+          <div class="floatcard__ico">🎂</div>
+          <div>
+            <b>42 birthdays this week</b>
+            <span>Auto-suggested orders ready</span>
+          </div>
+        </div>
+        <div class="floatcard floatcard--2" data-depth="0.10">
+          <div class="floatcard__ico">🚚</div>
+          <div>
+            <b>Delivery · 11:30 AM</b>
+            <span>Rider Arjun · Zone 4</span>
+          </div>
+        </div>
+        <div class="floatcard floatcard--3" data-depth="0.14">
+          <div class="floatcard__ico">📄</div>
+          <div>
+            <b>Invoice #INV-2841</b>
+            <span>Paid · ₹ 18,450</span>
+          </div>
+        </div>
+
+        <div class="sparkle sparkle--a"></div>
+        <div class="sparkle sparkle--b"></div>
+        <div class="sparkle sparkle--c"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- stats strip -->
+  <div class="hero__stats" role="list">
+    <div role="listitem"><b>21</b><span>Integrated modules</span></div>
+    <div role="listitem"><b>2</b><span>Portals · Admin + Corporate</span></div>
+    <div role="listitem"><b>4-step</b><span>Bulk order wizard</span></div>
+    <div role="listitem"><b>100%</b><span>Responsive · Desktop · Tablet · Mobile</span></div>
+  </div>
+</section>
+
+<!-- ============== PLATFORM OVERVIEW ============== -->
+<section class="section" id="platform">
+  <div class="container">
+    <header class="sec-head">
+      <span class="eyebrow">Platform overview</span>
+      <h2 class="h2">One platform. Two portals. Every celebration delivered on time.</h2>
+      <p class="sub">From KYC onboarding to rider proof-of-delivery, B2B Corporate Bakery Platform connects your bakery operations to every corporate client you serve.</p>
+    </header>
+
+    <div class="platform-grid">
+      <article class="pill">
+        <div class="pill__ico">🏢</div>
+        <h3>For Corporates</h3>
+        <p>Self-onboard, maintain staff celebrations, place bulk orders, view invoices and manage internal users — all with role-level visibility.</p>
+        <a href="#corporate" class="link">Corporate Portal →</a>
+      </article>
+      <article class="pill">
+        <div class="pill__ico">🛠️</div>
+        <h3>For Admin / Bakery</h3>
+        <p>Real-time operations view, pending actions, delivery map, invoice reconciliation, template editor and full audit trail.</p>
+        <a href="#admin" class="link">Admin Portal →</a>
+      </article>
+      <article class="pill">
+        <div class="pill__ico">📐</div>
+        <h3>UX standards</h3>
+        <p>Tile/list toggle on every list, from-to date filters, bulk actions, pagination, responsive layouts. Consistency across all 21 modules.</p>
+        <a href="#workflow" class="link">UX Framework →</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 21 MODULES ============== -->
+<section class="section section--alt" id="modules">
+  <div class="container">
+    <header class="sec-head">
+      <span class="eyebrow">Business Requirements · 21 modules</span>
+      <h2 class="h2">The complete module map</h2>
+      <p class="sub">Every capability defined in the BRD — from authentication to inventory — is shipped out-of-the-box and integrated end-to-end.</p>
+    </header>
+
+    <div class="mod-filter" role="tablist" aria-label="Module filter">
+      <button class="chip is-active" data-filter="all" role="tab" aria-selected="true">All 21</button>
+      <button class="chip" data-filter="ops" role="tab">Operations</button>
+      <button class="chip" data-filter="people" role="tab">People</button>
+      <button class="chip" data-filter="finance" role="tab">Finance</button>
+      <button class="chip" data-filter="platform" role="tab">Platform</button>
+    </div>
+
+    <div class="modules" id="modules-grid">
+      <!-- M01 -->
+      <article class="mod" data-cat="platform">
+        <span class="mod__tag">M01</span>
+        <div class="mod__ico" aria-hidden="true">🔐</div>
+        <h3>Authentication & Access Control</h3>
+        <p>Multi-user for Admin & Corporate, role-based permissions, module-level visibility.</p>
+      </article>
+      <!-- M02 -->
+      <article class="mod" data-cat="people">
+        <span class="mod__tag">M02</span>
+        <div class="mod__ico">📝</div>
+        <h3>Corporate Registration & Onboarding</h3>
+        <p>Self-service registration, KYC, approval workflow, account status management.</p>
+      </article>
+      <!-- M03 -->
+      <article class="mod" data-cat="ops">
+        <span class="mod__tag">M03</span>
+        <div class="mod__ico">📊</div>
+        <h3>Corporate Dashboard</h3>
+        <p>At-a-glance metrics, celebration calendar, upcoming orders.</p>
+      </article>
+      <!-- M04 -->
+      <article class="mod" data-cat="people">
+        <span class="mod__tag">M04</span>
+        <div class="mod__ico">👥</div>
+        <h3>Staff Management</h3>
+        <p>CRUD, bulk Excel/CSV upload, export, archive/disable/hold, tile + list views, filters, pagination.</p>
+      </article>
+      <!-- M05 -->
+      <article class="mod" data-cat="ops">
+        <span class="mod__tag">M05</span>
+        <div class="mod__ico">🧁</div>
+        <h3>Product Catalog</h3>
+        <p>Categories, products, combos, add-ons, variants, pricing tiers.</p>
+      </article>
+      <!-- M06 -->
+      <article class="mod" data-cat="ops">
+        <span class="mod__tag">M06</span>
+        <div class="mod__ico">📦</div>
+        <h3>Order Management</h3>
+        <p>Placement, processing, tracking, remarks, recurring orders, bulk orders.</p>
+      </article>
+      <!-- M07 -->
+      <article class="mod" data-cat="ops">
+        <span class="mod__tag">M07</span>
+        <div class="mod__ico">🚚</div>
+        <h3>Delivery Management</h3>
+        <p>Zones, time slots, rider assignment, mark-as-delivered with proof.</p>
+      </article>
+      <!-- M08 -->
+      <article class="mod" data-cat="platform">
+        <span class="mod__tag">M08</span>
+        <div class="mod__ico">📣</div>
+        <h3>Notification & Communication</h3>
+        <p>Editable templates, 2-day pre-delivery alerts, email log, automated triggers.</p>
+      </article>
+      <!-- M09 -->
+      <article class="mod" data-cat="finance">
+        <span class="mod__tag">M09</span>
+        <div class="mod__ico">💳</div>
+        <h3>Payment & Invoicing</h3>
+        <p>Credit accounts, payment gateway, invoice generation, refunds, tax.</p>
+      </article>
+      <!-- M10 -->
+      <article class="mod" data-cat="finance">
+        <span class="mod__tag">M10</span>
+        <div class="mod__ico">📈</div>
+        <h3>Reporting & Analytics</h3>
+        <p>Admin + corporate reports, date filters, export, charts.</p>
+      </article>
+      <!-- M11 -->
+      <article class="mod" data-cat="ops">
+        <span class="mod__tag">M11</span>
+        <div class="mod__ico">🧭</div>
+        <h3>Admin Dashboard</h3>
+        <p>Real-time ops view, pending actions, delivery map.</p>
+      </article>
+      <!-- M12 -->
+      <article class="mod" data-cat="platform">
+        <span class="mod__tag">M12</span>
+        <div class="mod__ico">🛡️</div>
+        <h3>Login & Activity Logs</h3>
+        <p>IP/device login log, activity audit trail, suspicious-activity detection.</p>
+      </article>
+      <!-- M13 -->
+      <article class="mod" data-cat="platform">
+        <span class="mod__tag">M13</span>
+        <div class="mod__ico">🔄</div>
+        <h3>Data Import & Export</h3>
+        <p>Excel/CSV import with validation, bulk export, import history.</p>
+      </article>
+      <!-- M14 -->
+      <article class="mod" data-cat="platform">
+        <span class="mod__tag">M14</span>
+        <div class="mod__ico">⚙️</div>
+        <h3>System Configuration</h3>
+        <p>Global settings, order/delivery/payment/notification configs.</p>
+      </article>
+      <!-- M15 -->
+      <article class="mod" data-cat="people">
+        <span class="mod__tag">M15</span>
+        <div class="mod__ico">🎂</div>
+        <h3>Occasion & Calendar</h3>
+        <p>Birthday/anniversary auto-detection, celebration calendar, auto-order suggestions.</p>
+      </article>
+      <!-- M16 -->
+      <article class="mod" data-cat="ops">
+        <span class="mod__tag">M16</span>
+        <div class="mod__ico">⭐</div>
+        <h3>Feedback & Ratings</h3>
+        <p>Post-delivery ratings, reviews, analytics.</p>
+      </article>
+      <!-- M17 -->
+      <article class="mod" data-cat="finance">
+        <span class="mod__tag">M17</span>
+        <div class="mod__ico">🎟️</div>
+        <h3>Discounts & Promotions</h3>
+        <p>Coupons, corporate-specific pricing, volume discounts, loyalty.</p>
+      </article>
+      <!-- M18 -->
+      <article class="mod" data-cat="ops">
+        <span class="mod__tag">M18</span>
+        <div class="mod__ico">🎧</div>
+        <h3>Support & Tickets</h3>
+        <p>Helpdesk tickets, SLA, escalation, knowledge base.</p>
+      </article>
+      <!-- M19 -->
+      <article class="mod" data-cat="ops">
+        <span class="mod__tag">M19</span>
+        <div class="mod__ico">🌾</div>
+        <h3>Inventory & Stock</h3>
+        <p>Raw materials, stock alerts, supplier management, production planning.</p>
+      </article>
+      <!-- M20 -->
+      <article class="mod" data-cat="platform">
+        <span class="mod__tag">M20</span>
+        <div class="mod__ico">🔔</div>
+        <h3>Notification Preferences</h3>
+        <p>Channel preferences, opt-in/opt-out, quiet hours.</p>
+      </article>
+      <!-- M21 -->
+      <article class="mod" data-cat="platform">
+        <span class="mod__tag">M21</span>
+        <div class="mod__ico">🎨</div>
+        <h3>UI/UX Framework Standards</h3>
+        <p>Tile/list toggle, pagination, date filters, bulk actions, responsive design.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============== ADMIN PORTAL ============== -->
+<section class="section" id="admin">
+  <div class="container">
+    <header class="sec-head sec-head--split">
+      <div>
+        <span class="eyebrow">Admin Portal · 10 modules</span>
+        <h2 class="h2">Run your bakery operations from one cockpit.</h2>
+        <p class="sub">Dashboard, corporates, products, orders, delivery, invoices, templates, logs and user management — all connected.</p>
+      </div>
+      <div class="pane-switch" role="tablist" aria-label="Admin views">
+        <button class="pane-switch__btn is-active" data-view="tile">⊞ Tile</button>
+        <button class="pane-switch__btn" data-view="list">☰ List</button>
+      </div>
+    </header>
+
+    <div class="mock">
+      <div class="mock__chrome">
+        <span class="dot dot--r"></span><span class="dot dot--y"></span><span class="dot dot--g"></span>
+        <span class="mock__url">b2bcorporatebakery.app / admin</span>
+      </div>
+      <div class="mock__layout">
+        <aside class="mock__side">
+          <div class="mock__brand">🎁 Admin</div>
+          <a class="mock__nav is-active">📊 Dashboard</a>
+          <a class="mock__nav">🏢 Corporates</a>
+          <a class="mock__nav">🧁 Products</a>
+          <a class="mock__nav">📦 Orders</a>
+          <a class="mock__nav">🚚 Delivery</a>
+          <a class="mock__nav">💳 Invoices</a>
+          <a class="mock__nav">✉️ Templates</a>
+          <a class="mock__nav">📧 Email Log</a>
+          <a class="mock__nav">🛡️ Login Log</a>
+          <a class="mock__nav">👤 Admin Users</a>
+        </aside>
+
+        <div class="mock__body">
+          <div class="mock__kpis">
+            <div class="kpi"><span>Today's orders</span><b>184</b><em class="up">▲ 12%</em></div>
+            <div class="kpi"><span>Pending delivery</span><b>37</b><em class="down">▼ 3%</em></div>
+            <div class="kpi"><span>Unpaid invoices</span><b>₹ 2.4L</b><em class="up">▲ 8%</em></div>
+            <div class="kpi"><span>Active corporates</span><b>126</b><em class="up">▲ 4</em></div>
+          </div>
+
+          <div class="mock__split">
+            <div class="panel">
+              <div class="panel__head"><b>Upcoming deliveries</b><small>Next 48h</small></div>
+              <ul class="tl">
+                <li><span class="tl__t">09:30</span><span class="tl__n">Acme Corp · 25 cupcakes</span><span class="tl__b tl__b--blue">Dispatched</span></li>
+                <li><span class="tl__t">10:15</span><span class="tl__n">Nimbus Ltd · Anniversary combo</span><span class="tl__b tl__b--amber">Ready</span></li>
+                <li><span class="tl__t">11:30</span><span class="tl__n">Northwind · Birthday cake x4</span><span class="tl__b tl__b--green">Out for delivery</span></li>
+                <li><span class="tl__t">14:00</span><span class="tl__n">Globex · Festival hampers</span><span class="tl__b tl__b--amber">Ready</span></li>
+              </ul>
+            </div>
+            <div class="panel">
+              <div class="panel__head"><b>Pre-delivery alerts</b><small>T-2 days</small></div>
+              <div class="alert">
+                <div class="alert__ico">🎂</div>
+                <div class="alert__t"><b>Priya Sharma · Acme</b><span>Birthday on 22 Apr · auto-order drafted</span></div>
+                <button class="btn btn--xs">Notify corporate</button>
+              </div>
+              <div class="alert">
+                <div class="alert__ico">💍</div>
+                <div class="alert__t"><b>Rahul & team · Nimbus</b><span>Work anniversary · 22 Apr</span></div>
+                <button class="btn btn--xs">Notify corporate</button>
+              </div>
+              <div class="alert">
+                <div class="alert__ico">🎉</div>
+                <div class="alert__t"><b>Northwind quarterly</b><span>Festival hamper run · 22 Apr</span></div>
+                <button class="btn btn--xs">Notify corporate</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-row">
+      <div class="sub-card"><b>📊 Dashboard</b><span>Real-time stats, recent orders, upcoming delivery notifications.</span></div>
+      <div class="sub-card"><b>🏢 Corporates</b><span>CRUD with tile/list, pagination, filters, status management.</span></div>
+      <div class="sub-card"><b>🧁 Products</b><span>SKU, pricing tiers, stock status, CSV import/export.</span></div>
+      <div class="sub-card"><b>📦 Orders</b><span>Status & date filters, detail modal, 2-day alert sender.</span></div>
+      <div class="sub-card"><b>🚚 Delivery</b><span>Delivery schedule with mark-as-delivered.</span></div>
+      <div class="sub-card"><b>💳 Invoices</b><span>Payment tracking, PDF download, email send.</span></div>
+      <div class="sub-card"><b>✉️ Templates</b><span>Editable email templates with dynamic placeholders.</span></div>
+      <div class="sub-card"><b>📧 Email Log</b><span>Full log with resend for failed emails.</span></div>
+      <div class="sub-card"><b>🛡️ Login Log</b><span>IP, device, location & status tracking.</span></div>
+      <div class="sub-card"><b>👤 Admin Users</b><span>Module-level visibility control.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== CORPORATE PORTAL ============== -->
+<section class="section section--alt" id="corporate">
+  <div class="container">
+    <header class="sec-head sec-head--split">
+      <div>
+        <span class="eyebrow">Corporate Portal · 6 modules</span>
+        <h2 class="h2">Everything your clients need to celebrate their people.</h2>
+        <p class="sub">A polished self-service experience where HR and admin teams place bulk orders, track deliveries and manage invoices.</p>
+      </div>
+      <div class="wizard-mini">
+        <span class="wz is-active">1 · Staff</span>
+        <span class="wz">2 · Items</span>
+        <span class="wz">3 · Delivery</span>
+        <span class="wz">4 · Review</span>
+      </div>
+    </header>
+
+    <div class="split-2">
+      <div class="mock mock--corp">
+        <div class="mock__chrome">
+          <span class="dot dot--r"></span><span class="dot dot--y"></span><span class="dot dot--g"></span>
+          <span class="mock__url">acme.b2cbakery.app / place-order</span>
+        </div>
+        <div class="wizard">
+          <div class="wizard__steps">
+            <div class="step is-done">1<span>Select Staff</span></div>
+            <div class="step is-active">2<span>Choose Items</span></div>
+            <div class="step">3<span>Delivery Details</span></div>
+            <div class="step">4<span>Review & Confirm</span></div>
+          </div>
+          <div class="wizard__body">
+            <div class="item">
+              <div class="item__img" style="--c:linear-gradient(135deg,#ffd28a,#ff7a7a)">🎂</div>
+              <div class="item__info"><b>Classic Birthday Cake · 1 kg</b><span>Vanilla · sugar-free option</span></div>
+              <div class="item__q"><button>−</button><i>3</i><button>+</button></div>
+              <div class="item__p">₹ 2,250</div>
+            </div>
+            <div class="item">
+              <div class="item__img" style="--c:linear-gradient(135deg,#b28fff,#6aa9ff)">🧁</div>
+              <div class="item__info"><b>Assorted Cupcakes · Box of 12</b><span>Team-share combo</span></div>
+              <div class="item__q"><button>−</button><i>2</i><button>+</button></div>
+              <div class="item__p">₹ 1,180</div>
+            </div>
+            <div class="item">
+              <div class="item__img" style="--c:linear-gradient(135deg,#7cf0c5,#44b5ff)">🍫</div>
+              <div class="item__info"><b>Anniversary Truffle · 500 g</b><span>Gluten-free add-on available</span></div>
+              <div class="item__q"><button>−</button><i>1</i><button>+</button></div>
+              <div class="item__p">₹ 980</div>
+            </div>
+            <div class="wizard__foot">
+              <span class="remarks">📝 Remarks: "Candle + card for Priya — no nuts"</span>
+              <b class="total">Subtotal · ₹ 4,410</b>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cp-side">
+        <div class="cp-card">
+          <h4>📊 Corporate Dashboard</h4>
+          <div class="cp-kpis">
+            <div><b>248</b><span>Staff</span></div>
+            <div><b>14</b><span>Active orders</span></div>
+            <div><b>42</b><span>Upcoming birthdays</span></div>
+            <div><b>7</b><span>Anniversaries</span></div>
+          </div>
+          <div class="cal">
+            <div class="cal__head">April · celebration calendar</div>
+            <div class="cal__grid">
+              <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+              <i>30</i><i>31</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i>
+              <i>6</i><i>7</i><i class="has has--b">8</i><i>9</i><i>10</i><i class="has has--a">11</i><i>12</i>
+              <i>13</i><i>14</i><i>15</i><i class="has has--b">16</i><i>17</i><i>18</i><i>19</i>
+              <i class="today">20</i><i>21</i><i class="has has--b has--a">22</i><i>23</i><i>24</i><i>25</i><i>26</i>
+              <i>27</i><i>28</i><i>29</i><i>30</i><i>1</i><i>2</i><i>3</i>
+            </div>
+            <div class="cal__legend"><span class="dotx dotx--b"></span>Birthday <span class="dotx dotx--a"></span>Anniversary</div>
+          </div>
+        </div>
+
+        <div class="cp-grid">
+          <div class="sub-card"><b>👥 Staff Management</b><span>Bulk upload, tile/list, dept filters, hold/archive.</span></div>
+          <div class="sub-card"><b>🛒 Place Order</b><span>4-step wizard with remarks.</span></div>
+          <div class="sub-card"><b>📦 My Orders</b><span>History with live tracking.</span></div>
+          <div class="sub-card"><b>🧾 Invoices</b><span>View, download, pay online.</span></div>
+          <div class="sub-card"><b>👤 Manage Users</b><span>Role-based module visibility.</span></div>
+          <div class="sub-card"><b>🎂 Occasions</b><span>Auto-detect + auto-suggest orders.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== WORKFLOW / UX FRAMEWORK ============== -->
+<section class="section" id="workflow">
+  <div class="container">
+    <header class="sec-head">
+      <span class="eyebrow">UX framework · M21 applied everywhere</span>
+      <h2 class="h2">Consistent interactions across every module</h2>
+      <p class="sub">Because every list, filter, and bulk action behaves the same, your teams learn B2B Corporate Bakery Platform once — and use it everywhere.</p>
+    </header>
+
+    <div class="steps">
+      <div class="step-card"><span>01</span><h4>Tile / list toggle</h4><p>Every list view switches between dense list and visual tile without losing state.</p></div>
+      <div class="step-card"><span>02</span><h4>From-to date filters</h4><p>Unified date range control on dashboards, reports, orders, invoices & logs.</p></div>
+      <div class="step-card"><span>03</span><h4>Bulk actions</h4><p>Select many rows; archive, export, tag, notify or send — without page reloads.</p></div>
+      <div class="step-card"><span>04</span><h4>Pagination + search</h4><p>Server-side paginated, sortable, deep-searchable lists across all 21 modules.</p></div>
+      <div class="step-card"><span>05</span><h4>Responsive everywhere</h4><p>Desktop cockpit collapses to a clean tablet layout and touch-friendly mobile cards.</p></div>
+      <div class="step-card"><span>06</span><h4>Light & dark theme</h4><p>One toggle, persisted per user. All charts, tables and states are theme-aware.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== CTA ============== -->
+<section class="section" id="contact">
+  <div class="container">
+    <div class="cta-simple reveal">
+      <span class="eyebrow">Ready when you are</span>
+      <h2 class="h2">Launch your B2B Corporate Bakery Platform<br>in weeks, not quarters.</h2>
+      <p class="sub">21 integrated modules. Admin + Corporate portals. From KYC onboarding to rider proof-of-delivery — everything your bakery needs to scale corporate gifting.</p>
+      <div class="cta__buttons">
+        <a href="http://localhost:5173/register" class="btn btn--primary">Start Free Trial 🚀</a>
+        <a href="http://localhost:5173/login" class="btn btn--outline">Login to Portal →</a>
+      </div>
+      <ul class="cta__ticks">
+        <li>Guided implementation &amp; data migration</li>
+        <li>Custom corporate pricing tiers</li>
+        <li>White-glove training for admin + corporate teams</li>
+        <li>No credit card required to start</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============== FOOTER ============== -->
+<footer class="foot">
+  <div class="container foot__grid">
+    <div>
+      <a href="#home" class="brand">
+        <span class="brand__mark">
+          <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="url(#g1)"/></svg>
+        </span>
+        <span class="brand__name">B2B Corporate Bakery Platform</span>
+      </a>
+      <p class="foot__p">B2B Corporate Bakery Platform — 21 modules, 2 portals, zero missed celebrations.</p>
+    </div>
+    <div>
+      <h5>Platform</h5>
+      <a href="#modules">Modules</a>
+      <a href="#admin">Admin Portal</a>
+      <a href="#corporate">Corporate Portal</a>
+      <a href="#workflow">UX framework</a>
+    </div>
+    <div>
+      <h5>Company</h5>
+      <a href="#contact">Contact</a>
+      <a href="#">Careers</a>
+      <a href="#">Press</a>
+      <a href="#">Partners</a>
+    </div>
+    <div>
+      <h5>Stay in the loop</h5>
+      <form class="foot__nl" onsubmit="event.preventDefault(); this.querySelector('input').value=''; this.querySelector('small').hidden=false;">
+        <input type="email" placeholder="you@company.com" required />
+        <button class="btn btn--primary">Subscribe</button>
+        <small hidden>✓ Subscribed.</small>
+      </form>
+    </div>
+  </div>
+  <div class="foot__bar">
+    <span>© 2026 B2B Corporate Bakery Platform Technologies. All rights reserved.</span>
+    <span>Made with 🎁 for corporates that care.</span>
+  </div>
+</footer>
+
+<script src="/landing-script.js"></script>
+</body>
+</html>
