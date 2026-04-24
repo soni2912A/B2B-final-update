@@ -2,22 +2,12 @@ import React, { useEffect, useState } from 'react'
 import { apiFetch } from '../../utils/api.js'
 import { showToast } from './index.jsx'
 
-// Small inline action used on Occasion rows. Three states:
-//   - Feature not configured → renders nothing (hides entirely)
-//   - User not connected     → "Connect in Settings first" hint
-//   - Synced                 → ✓ View in Google link
-//   - Otherwise              → "📅 Add to Google Calendar" button
-//
-// Caller passes `basePath` ('/admin/occasions' or '/corporate/occasions') so
-// this same component works for both roles. On success it calls onSynced()
-// with the fields to patch into the parent's list state.
+
 export default function GoogleSyncRowAction({ occasion, basePath, onSynced }) {
   const [status, setStatus] = useState(null)   // { configured, connected }
   const [syncing, setSyncing] = useState(false)
 
-  // Lightweight cache — status never changes while the list is open unless the
-  // user toggles Settings in another tab. Share a single promise across all
-  // row components on the page to avoid N concurrent requests.
+ 
   useEffect(() => {
     let cancelled = false
     getSharedStatus().then(s => { if (!cancelled) setStatus(s) })
@@ -77,8 +67,7 @@ export default function GoogleSyncRowAction({ occasion, basePath, onSynced }) {
   )
 }
 
-// Simple module-level promise cache so that N row components don't each fire
-// their own /status request on render. Refreshes once per page navigation.
+
 let _statusPromise = null
 function getSharedStatus() {
   if (_statusPromise) return _statusPromise
@@ -88,7 +77,7 @@ function getSharedStatus() {
   return _statusPromise
 }
 
-// Exported so Settings can invalidate the cache after (dis)connect.
+
 export function resetGoogleStatusCache() {
   _statusPromise = null
 }

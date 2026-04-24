@@ -5,8 +5,7 @@ const emailService = require('../../services/email.service');
 const { sendSuccess, sendError, sendPaginated } = require('../../utils/responseHelper');
 const { getPagination } = require('../../utils/pagination');
 
-// Fetch a role the admin is allowed to assign (system template OR a role scoped
-// to their own business). Returns the role or null.
+
 async function resolveAssignableRole(roleId, businessId) {
   if (!roleId) return null;
   return Role.findOne({
@@ -48,9 +47,7 @@ const getAllAdminUsers = async (req, res) => {
   } catch (error) { return handleError(res, error, 'getAllAdminUsers'); }
 };
 
-// Invite flow: create an inactive User with a hashed token, send email containing
-// the raw token in the URL. Admin never sees a cleartext password; the invitee
-// sets their own on the accept page.
+
 const inviteUser = async (req, res) => {
   try {
     const { email, name, role = 'staff', permissions, roleId } = req.body;
@@ -58,8 +55,7 @@ const inviteUser = async (req, res) => {
     if (!name  || !String(name).trim())    return sendError(res, 400, 'Name is required.');
     if (!ALLOWED_ROLES.includes(role))     return sendError(res, 400, `Role must be one of: ${ALLOWED_ROLES.join(', ')}.`);
 
-    // If roleId is provided, its permissions take precedence over the raw
-    // permissions[] array. This is how Admin-assigned role-based access works.
+   
     let resolvedPermissions = Array.isArray(permissions) ? permissions : [];
     if (roleId) {
       const assignedRole = await resolveAssignableRole(roleId, req.businessId);
@@ -73,8 +69,7 @@ const inviteUser = async (req, res) => {
 
     const rawToken = crypto.randomBytes(32).toString('hex');
     const hashed = hashToken(rawToken);
-    // User.password is required by the schema; give a throwaway random value that
-    // the accept-invite flow overwrites before the user logs in.
+   
     const placeholderPassword = crypto.randomBytes(24).toString('hex');
 
     const user = await User.create({
@@ -109,8 +104,7 @@ const inviteUser = async (req, res) => {
 
 const updateAdminUser = async (req, res) => {
   try {
-    // Strict allowlist — email, password, isActive, business, role-to-super_admin
-    // must NEVER be settable via this endpoint.
+    
     const { name, role, permissions, roleId } = req.body;
     const patch = {};
     if (name !== undefined) patch.name = String(name).trim();
@@ -118,7 +112,6 @@ const updateAdminUser = async (req, res) => {
       if (!ALLOWED_ROLES.includes(role)) return sendError(res, 400, `Role must be one of: ${ALLOWED_ROLES.join(', ')}.`);
       patch.role = role;
     }
-    // roleId wins over raw permissions[] when both are provided.
     if (roleId) {
       const assignedRole = await resolveAssignableRole(roleId, req.businessId);
       if (!assignedRole) return sendError(res, 400, 'Selected role is invalid or not accessible.');
@@ -154,7 +147,7 @@ const toggleUserStatus = async (req, res) => {
   } catch (error) { return handleError(res, error, 'toggleUserStatus'); }
 };
 
-// Admin-triggered email-based reset. Does NOT accept a cleartext password.
+
 const resetUserPassword = async (req, res) => {
   try {
     const user = await User.findOne({

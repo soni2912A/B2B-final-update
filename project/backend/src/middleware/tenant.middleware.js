@@ -3,7 +3,6 @@ const Business = require('../models/Business.model');
 
 const tenantScope = async (req, res, next) => {
   if (req.user.role === 'super_admin') {
-    // super_admin: use query param ?businessId=... or fall back to first business
     if (req.query.businessId || req.body.businessId) {
       req.businessId = req.query.businessId || req.body.businessId;
     } else {

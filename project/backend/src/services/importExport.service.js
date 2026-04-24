@@ -3,16 +3,14 @@ const PDFDocument = require('pdfkit');
 
 const PDF_ROW_CAP = 500;
 
-// ─── Parsing ─────────────────────────────────────────────────────────────────
+
 const parseExcel = (buffer) => {
   const workbook = XLSX.read(buffer, { type: 'buffer' });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   return XLSX.utils.sheet_to_json(sheet, { defval: '' });
 };
 
-// ─── Response helpers ────────────────────────────────────────────────────────
-// All accept the same shape: { title, columns, rows, widths? }
-// columns is a string[]; rows is an array-of-arrays matched positionally to columns.
+
 
 function sendXlsx(res, { title, columns, rows, widths }, filename) {
   const aoa = [columns, ...rows];
@@ -34,22 +32,15 @@ function sendCsv(res, { columns, rows }, filename) {
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
-  return res.send('\uFEFF' + csv); // BOM so Excel opens UTF-8 correctly
+  return res.send('\uFEFF' + csv); 
 }
 
-// PDF truncates at PDF_ROW_CAP and adds a footer note if truncated.
-// Pattern adapted from report.controller.js:sendAsPDF (landscape A4, zebra rows, page numbers).
-// IMPORTANT: caller must NOT call sendError on res after invoking this — we take
-// ownership of the response as soon as doc.pipe(res) runs. The function returns
-// `true` so dispatchers can detect that the response has been committed.
 function sendPdf(res, { title, columns, rows }, filename, opts = {}) {
   const truncated = rows.length > PDF_ROW_CAP;
   const renderRows = truncated ? rows.slice(0, PDF_ROW_CAP) : rows;
 
   const doc = new PDFDocument({ margin: 36, size: 'A4', layout: 'landscape', bufferPages: true });
 
-  // Defense: if the client aborts or the pipe fails mid-stream, pdfkit would emit
-  // an 'error' event that — without a listener — crashes the process. Log and move on.
   doc.on('error', (err) => console.error('[sendPdf] pdf stream error:', err.message));
   res.on('error', (err) => console.error('[sendPdf] response stream error:', err.message));
   res.on('close', () => { if (!res.writableEnded) { try { doc.end(); } catch (_) {} } });
@@ -59,7 +50,7 @@ function sendPdf(res, { title, columns, rows }, filename, opts = {}) {
   res.setHeader('Cache-Control', 'no-store');
   doc.pipe(res);
 
-  // Header
+  
   doc.fillColor('#0ea5e9').fontSize(20).text('B2B Corporate Bakery Platform', { align: 'left' });
   doc.fillColor('#111').fontSize(16).text(title || 'Report');
   if (opts.subtitle) doc.fillColor('#555').fontSize(10).text(opts.subtitle);
@@ -134,10 +125,7 @@ function sendPdf(res, { title, columns, rows }, filename, opts = {}) {
   return true;
 }
 
-// Dispatcher — picks the right sender based on format. Returns `true` exactly when
-// the response has been (or will be) sent; `false` for an unknown format so the caller
-// can emit its own 400. Never returns undefined — prevents the "fall through to sendError
-// after already starting a stream" crash we hit with PDF.
+
 function sendExport(res, format, dataset, basename, opts = {}) {
   const fmt = String(format || 'xlsx').toLowerCase();
   if (fmt === 'csv')  { sendCsv(res, dataset, `${basename}.csv`);   return true; }
@@ -146,9 +134,7 @@ function sendExport(res, format, dataset, basename, opts = {}) {
   return false;
 }
 
-// ─── Templates ───────────────────────────────────────────────────────────────
-// All templates are one header row + one example row demonstrating valid data.
-// Returned as XLSX buffers; callers set Content-Disposition themselves.
+
 
 function buildTemplate(columns, exampleRow, sheetName) {
   const ws = XLSX.utils.aoa_to_sheet([columns, exampleRow]);

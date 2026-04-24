@@ -13,15 +13,7 @@ const seed = async () => {
   await connectDB();
   console.log('Connected. Seeding...');
 
-  // ─── Subscription catalog ──────────────────────────────────────────────────
-  // Shared plan-catalog entries (business: null = catalog, not per-tenant).
-  // Businesses reference plans by name via case-insensitive Subscription.findOne
-  // in createBusiness — don't change these names without updating that lookup.
-  //
-  // Convention: `null` on a quota field means UNLIMITED. The UI renders null/
-  // undefined as "Unlimited"; enforcement code (when built) must check
-  // `limit != null && count >= limit` before rejecting. Numeric 0 would display
-  // literally as "0", which is valid but not what Enterprise wants.
+  
   const PLAN_CATALOG = [
     {
       name: 'Starter',
@@ -72,9 +64,7 @@ const seed = async () => {
     console.log(`Seeded ${missingPlans.length} subscription plan${missingPlans.length === 1 ? '' : 's'}.`);
   }
 
-  // ─── Fixtures (idempotent) ─────────────────────────────────────────────────
-  // Each create is guarded by a findOne — re-running seed after test data has
-  // built up will skip every fixture and leave everything intact.
+  
 
   const superAdmin = await User.findOne({ email: 'superadmin@fleet.com' })
     || await User.create({
@@ -99,8 +89,7 @@ const seed = async () => {
     });
   }
 
-  // Assign the seeded business to Professional only on first create — don't
-  // overwrite a human-chosen plan on subsequent runs.
+  
   if (businessIsNew) {
     const professional = await Subscription.findOne({ name: 'Professional', business: null });
     if (professional) {

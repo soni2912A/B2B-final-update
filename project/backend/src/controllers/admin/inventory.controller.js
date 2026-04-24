@@ -4,7 +4,6 @@ const notificationService = require('../../services/notification.service');
 const { sendSuccess, sendError, sendPaginated } = require('../../utils/responseHelper');
 const { getPagination } = require('../../utils/pagination');
 
-// List products with their current stock — Product.stockQuantity is the source of truth
 const getAllInventory = async (req, res) => {
   try {
     const { page, limit, skip } = getPagination(req.query);
@@ -38,7 +37,6 @@ const getLowStockItems = async (req, res) => {
   } catch (e) { return sendError(res, 500, e.message); }
 };
 
-// Adjust stock — update Product.stockQuantity + append Inventory ledger entry
 const adjustStock = async (req, res) => {
   try {
     const { quantity, reason, type, reference } = req.body;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react'
-import { apiFetch, formatDate, initials, BACKEND_BASE } from '../../../utils/api.js'
-import { Badge, Card, PageHeader, FilterBar, TableWrap, TblAction, Btn, Loading, Modal, FormGroup, Input, Select, Textarea } from '../../ui/index.jsx'
+import { apiFetch, initials, BACKEND_BASE } from '../../../utils/api.js'
+import { Badge, Card, PageHeader, FilterBar, TableWrap, TblAction, Pagination, Btn, Loading, Modal, FormGroup, Input, Select, Textarea } from '../../ui/index.jsx'
 import { showToast } from '../../ui/index.jsx'
 import EditableCell from '../../ui/EditableCell.jsx'
 
@@ -14,24 +14,27 @@ const STATUS_OPTIONS = [
   { v: 'rescheduled', l: 'Rescheduled' },
 ]
 
-// Non-terminal order states — i.e. orders that haven't been fully delivered
-// or cancelled and can still have deliveries scheduled against them.
 const SCHEDULABLE_ORDER_STATUSES = new Set([
   'new', 'scheduled', 'processing', 'assigned', 'out_for_delivery',
 ])
 
+// Format date as dd/mm/yyyy
+function formatDate(dateStr) {
+  if (!dateStr) return '—'
+  const d = new Date(dateStr)
+  if (isNaN(d)) return '—'
+  const dd = String(d.getDate()).padStart(2, '0')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const yyyy = d.getFullYear()
+  return `${dd}/${mm}/${yyyy}`
+}
+
 function addressSubdoc(text) {
-  // Flatten a single-line address into the schema's subdoc shape. Everything
-  // goes into `street` unless the admin takes the time to split it; the
-  // subdoc's other fields remain empty strings.
   const t = String(text || '').trim()
   if (!t) return undefined
   return { street: t, city: '', state: '', pincode: '' }
 }
 
-// Visual step indicator for a delivery. Shows the canonical happy-path flow:
-// scheduled → in_transit → delivered. Failed and rescheduled get their own
-// compact badges since they don't fit a linear progression.
 function DeliveryProgress({ status }) {
   if (status === 'failed') {
     return <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-50 text-red-700">⨯ Failed</span>
@@ -70,27 +73,31 @@ function DeliveryProgress({ status }) {
 
 export default function DeliveriesPage() {
   const [deliveries, setDeliveries] = useState([])
+  const [pagination, setPag]        = useState({ total: 0, page: 1, limit: 20 })
   const [loading, setLoading]       = useState(true)
   const [showCreate, setShowCreate] = useState(false)
   const [filters, setFilters]       = useState({ search: '', status: '', from: '', to: '' })
-  const [modal, setModal]           = useState(null)   // { type, delivery }
-  const [proofUrl, setProofUrl]     = useState(null)   // proof image modal
+  const [modal, setModal]           = useState(null)
+  const [proofUrl, setProofUrl]     = useState(null)
   const isTypingRef = useRef(false)
 
-  const buildQuery = useCallback((f) => {
+  const buildQuery = useCallback((f, extra = {}) => {
     const p = new URLSearchParams()
+    p.set('page', String(extra.page ?? pagination.page))
+    p.set('limit', String(extra.limit ?? pagination.limit))
     if (f.search) p.set('search', f.search)
     if (f.status) p.set('status', f.status)
     if (f.from)   p.set('from', f.from)
     if (f.to)     p.set('to', f.to)
-    const qs = p.toString()
-    return qs ? `?${qs}` : ''
-  }, [])
+    return p.toString()
+  }, [pagination.page, pagination.limit])
 
-  const load = useCallback(async (f = filters) => {
+  const load = useCallback(async (f = filters, extra = {}) => {
     try {
-      const res = await apiFetch('GET', `/admin/deliveries${buildQuery(f)}`)
+      const qs = buildQuery(f, extra)
+      const res = await apiFetch('GET', `/admin/deliveries?${qs}`)
       setDeliveries(res.data?.deliveries || [])
+      setPag(res.pagination || { total: res.data?.deliveries?.length || 0, page: extra.page ?? 1, limit: extra.limit ?? 20 })
     } catch (err) {
       showToast(err.message || 'Failed to load deliveries.', 'error')
     } finally {
@@ -120,8 +127,6 @@ export default function DeliveriesPage() {
     } catch (err) { showToast(err.message || 'Could not update status.', 'error') }
   }
 
-  // Inline-edit the scheduled date. Non-terminal statuses only; the cell below
-  // gates editability so admins can't silently reschedule a completed delivery.
   async function saveScheduledDate(id, dateStr) {
     await apiFetch('PUT', `/admin/deliveries/${id}`, { scheduledDate: dateStr })
     setDeliveries(ds => ds.map(d => d._id === id ? { ...d, scheduledDate: dateStr } : d))
@@ -129,7 +134,7 @@ export default function DeliveriesPage() {
 
   return (
     <div>
-      <PageHeader title="Deliveries" subtitle={`${deliveries.length} deliveries`}>
+      <PageHeader title="Deliveries" subtitle={`${pagination.total} deliveries`}>
         <Btn variant="primary" onClick={() => setShowCreate(true)}>+ Schedule Delivery</Btn>
       </PageHeader>
 
@@ -147,63 +152,73 @@ export default function DeliveriesPage() {
 
       <Card noPad>
         {loading ? <Loading /> : (
-          <TableWrap>
-            <thead>
-              <tr><th>Order</th><th>Assigned To</th><th>Delivery Date</th><th>Progress</th><th>Attempts</th><th>Proof</th><th>Actions</th></tr>
-            </thead>
-            <tbody>
-              {deliveries.length === 0 ? (
-                <tr><td colSpan={7} className="text-center py-10 text-text2 text-sm">No records found.</td></tr>
-              ) : deliveries.map(d => {
-                const canInTransit = d.status === 'scheduled' || d.status === 'rescheduled'
-                const canDeliver   = d.status !== 'delivered' && d.status !== 'failed' && d.status !== 'cancelled'
-                const canFail      = d.status !== 'delivered' && d.status !== 'failed' && d.status !== 'cancelled'
-                const canRetry     = d.status === 'failed'
-                return (
-                  <tr key={d._id}>
-                    <td data-label="Order"><span className="font-mono text-[12px]">{d.order?.orderNumber || '—'}</span></td>
-                    <td data-label="Assigned To">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-accent-light flex items-center justify-center text-[10px] font-semibold text-accent flex-shrink-0">
-                          {initials(d.assignedTo?.name || '?')}
+          <>
+            <TableWrap>
+              <thead>
+                <tr><th>SR.NO</th><th>Order</th><th>Assigned To</th><th>Delivery Date</th><th>Progress</th><th>Attempts</th><th>Proof</th><th>Actions</th></tr>
+              </thead>
+              <tbody>
+                {deliveries.length === 0 ? (
+                  <tr><td colSpan={8} className="text-center py-10 text-text2 text-sm">No records found.</td></tr>
+                ) : deliveries.map((d, idx) => {
+                  const canInTransit = d.status === 'scheduled' || d.status === 'rescheduled'
+                  const canDeliver   = d.status !== 'delivered' && d.status !== 'failed' && d.status !== 'cancelled'
+                  const canFail      = d.status !== 'delivered' && d.status !== 'failed' && d.status !== 'cancelled'
+                  const canRetry     = d.status === 'failed'
+                  return (
+                    <tr key={d._id}>
+                      <td data-label="#">{(pagination.page - 1) * pagination.limit + idx + 1}</td>
+                      <td data-label="Order"><span className="font-mono text-[12px]">{d.order?.orderNumber || '—'}</span></td>
+                      <td data-label="Assigned To">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-accent-light flex items-center justify-center text-[10px] font-semibold text-accent flex-shrink-0">
+                            {initials(d.assignedTo?.name || '?')}
+                          </div>
+                          {d.assignedTo?.name || 'Unassigned'}
                         </div>
-                        {d.assignedTo?.name || 'Unassigned'}
-                      </div>
-                    </td>
-                    <td data-label="Delivery Date">
-                      <EditableCell
-                        value={d.scheduledDate ? new Date(d.scheduledDate).toISOString().slice(0, 10) : ''}
-                        mode="date"
-                        render={() => formatDate(d.scheduledDate)}
-                        disabled={d.status === 'delivered' || d.status === 'failed' || d.status === 'cancelled'}
-                        onSave={async (v) => { await saveScheduledDate(d._id, v) }}
-                      />
-                    </td>
-                    <td data-label="Progress"><DeliveryProgress status={d.status} /></td>
-                    <td data-label="Attempts" className="text-text2">{d.attemptCount || 0}</td>
-                    <td data-label="Proof">
-                      {d.proofOfDelivery ? (
-                        <button
-                          onClick={() => setProofUrl(`${BACKEND_BASE}${d.proofOfDelivery}`)}
-                          className="text-accent hover:underline text-[12px]"
-                        >View</button>
-                      ) : (
-                        <span className="text-text3 text-[12px]">—</span>
-                      )}
-                    </td>
-                    <td data-label="Actions">
-                      <div className="flex gap-1.5 flex-wrap">
-                        {canInTransit && <TblAction onClick={() => markInTransit(d._id)}>→ In Transit</TblAction>}
-                        {canDeliver   && <TblAction onClick={() => setModal({ type: 'deliver', delivery: d })}>✓ Done</TblAction>}
-                        {canFail      && <TblAction variant="danger" onClick={() => setModal({ type: 'fail', delivery: d })}>✗ Failed</TblAction>}
-                        {canRetry     && <TblAction onClick={() => setModal({ type: 'retry', delivery: d })}>↻ Retry</TblAction>}
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </TableWrap>
+                      </td>
+                      <td data-label="Delivery Date">
+                        <EditableCell
+                          value={d.scheduledDate ? new Date(d.scheduledDate).toISOString().slice(0, 10) : ''}
+                          mode="date"
+                          render={() => formatDate(d.scheduledDate)}
+                          disabled={d.status === 'delivered' || d.status === 'failed' || d.status === 'cancelled'}
+                          onSave={async (v) => { await saveScheduledDate(d._id, v) }}
+                        />
+                      </td>
+                      <td data-label="Progress"><DeliveryProgress status={d.status} /></td>
+                      <td data-label="Attempts" className="text-text2">{d.attemptCount || 0}</td>
+                      <td data-label="Proof">
+                        {d.proofOfDelivery ? (
+                          <button
+                            onClick={() => setProofUrl(`${BACKEND_BASE}${d.proofOfDelivery}`)}
+                            className="text-accent hover:underline text-[12px]"
+                          >View</button>
+                        ) : (
+                          <span className="text-text3 text-[12px]">—</span>
+                        )}
+                      </td>
+                      <td data-label="Actions">
+                        <div className="flex gap-1.5 flex-wrap">
+                          {canInTransit && <TblAction onClick={() => markInTransit(d._id)}>→ In Transit</TblAction>}
+                          {canDeliver   && <TblAction onClick={() => setModal({ type: 'deliver', delivery: d })}>✓ Done</TblAction>}
+                          {canFail      && <TblAction variant="danger" onClick={() => setModal({ type: 'fail', delivery: d })}>✗ Failed</TblAction>}
+                          {canRetry     && <TblAction onClick={() => setModal({ type: 'retry', delivery: d })}>↻ Retry</TblAction>}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </TableWrap>
+            <Pagination
+              total={pagination.total}
+              page={pagination.page}
+              limit={pagination.limit}
+              onPageChange={p => load(filters, { page: p })}
+              onLimitChange={l => load(filters, { page: 1, limit: l })}
+            />
+          </>
         )}
       </Card>
 
@@ -263,7 +278,6 @@ export default function DeliveriesPage() {
   )
 }
 
-// ─── Mark Delivered — captures notes + optional proof-of-delivery photo/sig ─
 export function MarkDeliveredModal({ delivery, onClose, onDone }) {
   const [notes, setNotes] = useState('')
   const [file, setFile]   = useState(null)
@@ -273,8 +287,6 @@ export function MarkDeliveredModal({ delivery, onClose, onDone }) {
   async function submit() {
     setSaving(true); setError('')
     try {
-      // If a file is provided, upload it first so we can include the URL in the
-      // markDelivered call (ensures proof appears in the same state update).
       if (file) {
         const fd = new FormData()
         fd.append('proof', file)
@@ -327,7 +339,6 @@ export function MarkDeliveredModal({ delivery, onClose, onDone }) {
   )
 }
 
-// ─── Mark Failed — captures a reason; increments attemptCount on backend ────
 function MarkFailedModal({ delivery, onClose, onDone }) {
   const [reason, setReason] = useState('')
   const [saving, setSaving] = useState(false)
@@ -366,7 +377,6 @@ function MarkFailedModal({ delivery, onClose, onDone }) {
   )
 }
 
-// ─── Retry — reschedules a failed delivery with a new date ─────────────────
 function RetryDeliveryModal({ delivery, onClose, onDone }) {
   const [date, setDate]     = useState('')
   const [saving, setSaving] = useState(false)
@@ -412,17 +422,12 @@ function CreateDeliveryModal({ onClose, onSave }) {
   const [orders, setOrders] = useState([])
   const [staff, setStaff]   = useState([])
   const [loadingRefs, setLoadingRefs] = useState(true)
-  // Classified error state:
-  // - submitError: user-facing, shown in banner. Only set by save() failures.
-  // - background fetch errors: never show a banner; dropdowns' empty-state
-  //   messages render instead. Logged to console for dev visibility.
   const [submitError, setSubmitError] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     let cancelled = false
     async function loadRefs() {
-      // Load each independently so a failure on one doesn't blank the other.
       const ordersPromise = apiFetch('GET', '/admin/orders?limit=500')
         .then(r => {
           if (cancelled) return
@@ -433,9 +438,6 @@ function CreateDeliveryModal({ onClose, onSave }) {
           if (!cancelled) console.error('[CreateDeliveryModal] orders fetch failed:', err.message)
         })
 
-      // /admin/team is the directory endpoint — adminAccess (admin + staff),
-      // purpose-built for dropdown population. /admin/users is admin-only
-      // because it hosts mutation handlers, so we can't reuse it here.
       const teamPromise = apiFetch('GET', '/admin/team?active=true&limit=500')
         .then(r => {
           if (cancelled) return

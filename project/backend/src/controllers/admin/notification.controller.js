@@ -54,7 +54,6 @@ const markAllRead = async (req, res) => {
   } catch (e) { return handleError(res, e, 'markAllRead'); }
 };
 
-// One canonical key per in-app notification event.
 const PREF_DEFAULTS = {
   newOrderPlaced:         { email: true, inApp: true },
   orderCancelled:         { email: true, inApp: true },
@@ -89,7 +88,6 @@ const updatePreferences = async (req, res) => {
     if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
       return sendError(res, 400, 'Preferences must be an object.');
     }
-    // Persist only recognised keys — ignore stray ones the client might send.
     const sanitized = {};
     for (const key of Object.keys(PREF_DEFAULTS)) {
       if (req.body[key] !== undefined) sanitized[key] = req.body[key];

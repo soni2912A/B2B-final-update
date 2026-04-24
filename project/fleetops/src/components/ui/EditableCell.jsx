@@ -1,22 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { showToast } from './index.jsx'
 
-// Inline table-cell editor. Renders a plain value until clicked, then swaps
-// to an input/select/textarea. Saves on blur + Enter, cancels on Escape.
-//
-// Usage:
-//   <EditableCell
-//     value={row.basePrice}
-//     mode="number"                              // text | number | select | date
-//     options={[{value:'active',label:'Active'}]}// required when mode='select'
-//     render={v => formatCurrency(v)}            // optional display formatter
-//     onSave={async (next) => apiFetch('PUT', …, { basePrice: next })}
-//     disabled={row.status === 'archived'}       // optional
-//   />
-//
-// The onSave callback receives the raw next value (string/number/etc.) and
-// must return a promise. The component handles loading state, rollback on
-// error, and toasts the error message.
+
 export default function EditableCell({
   value,
   mode = 'text',
@@ -32,12 +17,10 @@ export default function EditableCell({
   const [saving, setSaving]   = useState(false)
   const inputRef = useRef(null)
 
-  // Keep draft in sync when the source value changes (e.g. parent re-fetched).
   useEffect(() => {
     if (!editing) setDraft(value)
   }, [value, editing])
 
-  // Focus + select the input when we enter edit mode so typing replaces the value.
   useEffect(() => {
     if (!editing) return
     const el = inputRef.current
@@ -57,8 +40,7 @@ export default function EditableCell({
     setDraft(value)
   }
   async function commit(nextRaw) {
-    // Coerce to the right type before comparing — otherwise `5 !== '5'` fires
-    // an unnecessary save after the user tabs out without changing anything.
+
     const next = coerce(nextRaw, mode)
     const prev = coerce(value, mode)
     if (next === prev) { setEditing(false); return }
@@ -68,8 +50,7 @@ export default function EditableCell({
       await onSave(next)
       setEditing(false)
     } catch (err) {
-      // Rollback the on-screen value; parent's `value` is still the old one
-      // since the save failed. Show the backend's error message verbatim.
+      
       setDraft(value)
       showToast(err?.message || 'Save failed.', 'error')
     } finally {
@@ -87,8 +68,7 @@ export default function EditableCell({
     }
   }
 
-  // Display mode — the cell content, with a subtle hover cue so users learn
-  // that cells are clickable. Empty values show the placeholder muted.
+
   if (!editing) {
     const shown = render ? render(value) : (value === '' || value == null ? placeholder : String(value))
     const isEmpty = value === '' || value == null
@@ -105,8 +85,7 @@ export default function EditableCell({
     )
   }
 
-  // Edit mode — controls share the same base styling as the form primitives
-  // in ui/index.jsx, just compact enough to fit inside a table cell.
+ 
   const base = `w-full px-1.5 py-0.5 border border-accent rounded bg-surface text-[13px] outline-none ${saving ? 'opacity-60' : ''} ${inputClassName}`
 
   if (mode === 'select') {
@@ -163,8 +142,7 @@ function coerce(v, mode) {
     return Number.isFinite(n) ? n : null
   }
   if (mode === 'date') {
-    // Normalize to YYYY-MM-DD for comparison; the backend accepts either a
-    // full ISO string or this shorter form.
+ 
     const d = new Date(v)
     return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10)
   }

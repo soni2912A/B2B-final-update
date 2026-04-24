@@ -89,9 +89,7 @@ const updateStaffStatus = async (req, res) => {
   } catch (error) { return handleError(res, error, 'updateStaffStatus'); }
 };
 
-// Parse the workbook and return each row with a row-level validation error if
-// required fields are missing. Shared by preview + import so the preview UX
-// matches what actually gets written.
+
 function parseStaffRows(buffer) {
   const workbook = XLSX.read(buffer, { type: 'buffer' });
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -116,8 +114,7 @@ function parseStaffRows(buffer) {
   });
 }
 
-// Preview — parse only, do not write. Returns rows + per-row errors so the UI
-// can render a table of what the user is about to commit.
+
 const previewImportStaff = async (req, res) => {
   try {
     if (!req.file) return sendError(res, 400, 'No file uploaded');
@@ -141,7 +138,7 @@ const bulkImportStaff = async (req, res) => {
 
     const results = { success: 0, failed: 0, errors: [] };
     for (const row of rows) {
-      // Skip rows the preview already flagged — they'd produce 500s here anyway.
+      
       if (row.errors.length > 0) {
         results.failed++;
         results.errors.push({ row: row.email || row.firstName || `line ${row.line}`, error: row.errors.join('; ') });
@@ -191,7 +188,6 @@ const deleteStaff = async (req, res) => {
   try {
     const staff = await Staff.findOneAndDelete({ _id: req.params.id, corporate: req.user.corporate });
     if (!staff) return sendError(res, 404, 'Staff member not found');
-    // Remove related occasions
     await Occasion.deleteMany({ staff: req.params.id, corporate: req.user.corporate });
     return sendSuccess(res, 200, 'Staff member deleted');
   } catch (error) { return handleError(res, error, 'deleteStaff'); }

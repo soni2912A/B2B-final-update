@@ -13,7 +13,6 @@ const getCatalog = async (_req, res) => {
   return sendSuccess(res, 200, 'Permission catalog', { permissions: groupByModule() });
 };
 
-// Super Admin sees everything — system templates and every business-scoped role.
 const listRoles = async (_req, res) => {
   try {
     const roles = await Role.find({}).populate('business', 'name').sort({ scope: 1, name: 1 });
@@ -23,7 +22,6 @@ const listRoles = async (_req, res) => {
   }
 };
 
-// Super Admin creates system-scope templates (available to every tenant).
 const createRole = async (req, res) => {
   try {
     const { name, description, permissions = [] } = req.body;

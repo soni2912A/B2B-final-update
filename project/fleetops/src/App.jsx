@@ -80,12 +80,9 @@ function AppShell() {
   const { user, page, sidebarOpen, setSidebarOpen, authView, logout } = useApp()
   const [showOnboarding, setShowOnboarding] = useState(false)
 
-  // Show the walkthrough once per user per browser, and only after user +
-  // role are ready (role drives the step list). Manual triggers (replay
-  // button in Settings) listen for this same state via a window event.
+ 
   useEffect(() => {
     if (user && shouldShowOnboarding(user._id)) {
-      // small delay so the main shell is visible behind the modal for context
       const t = setTimeout(() => setShowOnboarding(true), 600)
       return () => clearTimeout(t)
     }
@@ -97,10 +94,7 @@ function AppShell() {
     return () => window.removeEventListener('onboarding:replay', onReplay)
   }, [])
 
-  // Idle timeout — only active while a user is logged in. Warning fires at
-  // 28 min; forced logout at 30 min. Numbers match the backend's JWT expiry
-  // tolerance (7d access token), not a session duration, but that's OK —
-  // this is a UX layer, not a security boundary.
+ 
   const { warning, secondsLeft, stayLoggedIn } = useIdleTimeout({
     enabled: !!user,
     timeoutMs: 30 * 60 * 1000,
@@ -111,22 +105,15 @@ function AppShell() {
     },
   })
 
-  // Public invite-accept page — shown when the invitee lands on the emailed URL.
-  // Must resolve before the auth guard so logged-in admins can still hit an invite
-  // for a different account in another tab without being booted to their dashboard.
+
   if (typeof window !== 'undefined' && window.location.pathname === '/accept-invite') {
     return <AcceptInvitePage />
   }
 
-  // Public reset-password page — deep-linked from the forgot-password email.
   if (typeof window !== 'undefined' && window.location.pathname.startsWith('/reset-password/')) {
     return <ResetPasswordPage />
   }
 
-  // URL-based routing from landing page links:
-  // /login  → show LoginPage
-  // /register or /free-trial → show RegisterPage
-  // This lets the landing page link directly to the right auth screen.
   if (!user) {
     if (authView === 'register')       return <RegisterPage />
     if (authView === 'admin-register') return <AdminRegisterPage />
@@ -134,7 +121,6 @@ function AppShell() {
     return <LoginPage />
   }
 
-  // Once logged in, clean up the URL so it shows / instead of /login or /register
   if (typeof window !== 'undefined' &&
       (window.location.pathname === '/login' ||
        window.location.pathname === '/register' ||
@@ -144,9 +130,6 @@ function AppShell() {
 
   const PageComponent = ROUTE_MAP[page]
 
-  // Permission check for the current page — show AccessDenied instead of the
-  // real component when the user's role+permission combination doesn't grant
-  // access. Users with an empty permissions[] always pass (legacy accounts).
   const currentNavItem = navItemFor(page)
   const currentPerm = currentNavItem?.perm
   const canAccess = hasPermission(user, currentPerm)

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react'
 import { useApp } from '../../AppContext.jsx'
 import { apiLogin, setLoginRole } from '../../utils/api.js'
@@ -5,20 +6,20 @@ import { showToast } from '../ui/index.jsx'
 import DeliveryAnimation from './DeliveryAnimation.jsx'
 
 const ROLES = [
-  { id: 'admin',          icon: '🏢', label: 'Admin',       color: '#f5c842' },
-  { id: 'staff',          icon: '👤', label: 'Staff',       color: '#4ade80' },
-  { id: 'corporate_user', icon: '🏭', label: 'Corporate',   color: '#60a5fa' },
-  { id: 'super_admin',    icon: '⚙️', label: 'Super Admin', color: '#f472b6' },
+  { id: 'admin', icon: '🏢', label: 'Admin', color: '#f5c842' },
+  { id: 'staff', icon: '👤', label: 'Staff', color: '#4ade80' },
+  { id: 'corporate_user', icon: '🏭', label: 'Corporate', color: '#60a5fa' },
+  { id: 'super_admin', icon: '⚙️', label: 'Super Admin', color: '#f472b6' },
 ]
 
 export default function LoginPage() {
   const { login, showRegister, showForgot, showAdminRegister } = useApp()
-  const [role,     setRole]     = useState('admin')
-  const [email,    setEmail]    = useState('admin@acme.com')
+  const [role, setRole] = useState('admin')
+  const [email, setEmail] = useState('admin@acme.com')
   const [password, setPassword] = useState('Admin@1234')
-  const [error,    setError]    = useState('')
-  const [loading,  setLoading]  = useState(false)
-  const [mounted,  setMounted]  = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80)
@@ -33,8 +34,8 @@ export default function LoginPage() {
     setLoginRole(role)
     try {
       const res = await apiLogin(email, password)
-      const tok  = res.data?.token ?? res.token
-      const user = res.data?.user  ?? res.user
+      const tok = res.data?.token ?? res.token
+      const user = res.data?.user ?? res.user
       if (!tok || !user) {
         setError(res.message || 'Unexpected response from server')
       } else {
@@ -409,8 +410,8 @@ export default function LoginPage() {
             <div className="stat-chips">
               {[
                 { label: 'Live Tracking', color: '#f5c842' },
-                { label: 'Smart Routes',  color: '#4ade80', delay: '0.6s' },
-                { label: 'Analytics',     color: '#60a5fa', delay: '1.2s' },
+                { label: 'Smart Routes', color: '#4ade80', delay: '0.6s' },
+                { label: 'Analytics', color: '#60a5fa', delay: '1.2s' },
               ].map(c => (
                 <div key={c.label} className="stat-chip">
                   <span className="chip-dot" style={{ background: c.color, animationDelay: c.delay }} />
@@ -425,8 +426,8 @@ export default function LoginPage() {
             <div className="stats-row">
               {[
                 { value: '12.4K', label: 'Deliveries Today', color: '#f5c842' },
-                { value: '98.2%', label: 'On-time Rate',     color: '#4ade80' },
-                { value: '340',   label: 'Active Drivers',   color: '#60a5fa' },
+                { value: '98.2%', label: 'On-time Rate', color: '#4ade80' },
+                { value: '340', label: 'Active Drivers', color: '#60a5fa' },
               ].map(s => (
                 <div key={s.label} className="stat-item">
                   <div className="stat-val" style={{ color: s.color }}>{s.value}</div>
@@ -458,7 +459,7 @@ export default function LoginPage() {
             </div>
 
             <h2 className="signin-heading">Welcome back</h2>
-            <p className="signin-sub">Sign in to your dashboard</p>
+            <p className="signin-sub">Log in to your dashboard</p>
 
             <div className="role-grid">
               {ROLES.map(r => (
@@ -481,7 +482,7 @@ export default function LoginPage() {
 
             <form onSubmit={doLogin}>
               <div className="form-group-dark">
-                <label className="dark-label">Email address</label>
+                <label className="dark-label">Email ID</label>
                 <input
                   type="email" value={email}
                   onChange={e => setEmail(e.target.value)}
@@ -501,8 +502,8 @@ export default function LoginPage() {
 
               <button type="submit" disabled={loading} className="submit-btn" style={{ '--rc': activeRole?.color }}>
                 {loading
-                  ? <><div className="dark-spinner" /> Signing in…</>
-                  : <>Sign in as {activeRole?.label} →</>
+                  ? <><div className="dark-spinner" /> Login in…</>
+                  : <>Login as {activeRole?.label} →</>
                 }
               </button>
             </form>

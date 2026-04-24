@@ -30,11 +30,6 @@ const createSubscription = async (req, res) => {
   } catch (error) { return handleError(res, error, 'createSubscription'); }
 };
 
-// Strict allowlist — `name` is treated as plan identity and stays read-only via
-// this endpoint (businesses reference plans by name via Subscription.findOne in
-// createBusiness). Likewise `business` ref and lifecycle fields (status,
-// startDate, endDate, isActive) are NOT settable here — this endpoint is for
-// catalog editing, not tenant-subscription lifecycle.
 const ALLOWED_UPDATE_KEYS = ['price', 'billingCycle', 'maxCorporates', 'maxStaffPerCorporate', 'maxOrders', 'features'];
 
 const updateSubscription = async (req, res) => {

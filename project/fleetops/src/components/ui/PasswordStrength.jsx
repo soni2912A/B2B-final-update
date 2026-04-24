@@ -1,16 +1,5 @@
 import React from 'react'
 
-// Lightweight password-strength meter. Scoring is intentionally simple — no
-// dictionary checks, no zxcvbn dep — just length + character diversity. The
-// backend enforces a 6-character minimum; this component gives visual feedback
-// so users aim higher on their own.
-//
-// Scoring (max 4):
-//   +1 if ≥ 8 chars    +1 if ≥ 12 chars
-//   +1 if mixed case + digit
-//   +1 if contains a symbol
-//
-// Bands: 0 = empty, 1 = weak, 2 = fair, 3 = good, 4 = strong
 
 export function scorePassword(pw) {
   if (!pw) return 0

@@ -1,10 +1,7 @@
-// Relative path → Vite dev server proxies /api/* to http://localhost:5000
-// In production, set VITE_API_URL in your environment
+
 export const API_BASE = import.meta.env.VITE_API_URL || '/api/v1'
 
-// Strip the /api/v1 suffix to get the bare server origin (e.g. http://localhost:5000).
-// Used to build absolute URLs for static assets like proof-of-delivery images that
-// are served directly by the backend, not through the API router.
+
 export const BACKEND_BASE = API_BASE.replace(/\/api\/v1\/?$/, '')
 
 let _token = null
@@ -45,7 +42,6 @@ export async function apiFetch(method, path, body, isFormData) {
   return data
 }
 
-// ─── Auth helpers ─────────────────────────────────────────────────────────────
 export async function apiLogin(email, password) {
   const res = await fetch(API_BASE + '/auth/login', {
     method: 'POST',
@@ -57,8 +53,6 @@ export async function apiLogin(email, password) {
   return data
 }
 
-// Authenticated file download. Streams the response as a Blob and triggers a
-// browser download with the given filename. Throws on non-2xx.
 export async function apiDownload(path, filename) {
   const headers = {}
   if (_token) headers['Authorization'] = 'Bearer ' + _token
@@ -98,10 +92,14 @@ export async function apiRegister(payload) {
   return data
 }
 
-// ─── Formatters (India locale, DD/MM/YYYY, ₹, uppercase AM/PM) ────────────────
 export const formatDate = d => {
   if (!d) return '—'
-  return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const dt = new Date(d)
+  if (isNaN(dt)) return '—'
+  const dd   = String(dt.getDate()).padStart(2, '0')
+  const mm   = String(dt.getMonth() + 1).padStart(2, '0')
+  const yyyy = dt.getFullYear()
+  return `${dd}/${mm}/${yyyy}`
 }
 export const formatTime = d => {
   if (!d) return '—'
@@ -118,7 +116,6 @@ export const initials = name =>
 export const formatRole = r =>
   ({ admin: 'Administrator', staff: 'Delivery Staff', corporate_user: 'Corporate User', super_admin: 'Super Admin' }[r] || r)
 
-// ─── Badge colour map ─────────────────────────────────────────────────────────
 export const badgeClass = status => {
   const map = {
     new: 'bg-blue-50 text-blue-800',

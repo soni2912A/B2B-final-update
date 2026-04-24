@@ -23,7 +23,6 @@ const handleError = (res, error, tag) => {
   return sendError(res, 500, error.message);
 };
 
-// Shared filter builder used by list + export so one edit changes both.
 const buildFilter = (req) => {
   const { search, status, from, to, corporate } = req.query;
   const filter = { business: req.businessId };
@@ -40,7 +39,6 @@ const buildFilter = (req) => {
   }
   if (search && String(search).trim()) {
     const re = new RegExp(String(search).trim().replace(ESCAPE_RE, '\\$&'), 'i');
-    // Corporate-name search isn't in scope this turn (flagged as a follow-up).
     filter.orderNumber = re;
   }
   return filter;
@@ -74,8 +72,6 @@ const getOrder = async (req, res) => {
   } catch (error) { return handleError(res, error, 'getOrder'); }
 };
 
-// Returns the canonical state machine for the frontend to render legal next
-// transitions without duplicating the map. See constants/orderStateMachine.js.
 const getStateMachine = (req, res) => {
   return sendSuccess(res, 200, 'State machine fetched.', {
     machine: ORDER_STATE_MACHINE,
@@ -95,7 +91,6 @@ const updateOrderStatus = async (req, res) => {
     if (!order) return sendError(res, 404, 'Order not found');
 
     if (order.status === status) {
-      // No-op transition — don't error, just return.
       return sendSuccess(res, 200, `Order already '${status}'.`, { order });
     }
 
@@ -111,10 +106,7 @@ const updateOrderStatus = async (req, res) => {
     if (status === 'delivered') {
       try {
         await invoiceService.generateInvoice(order);
-        // Mirror the delivery-completion side effects so corporates get the same
-        // emails regardless of which path flipped the order to 'delivered'.
-        // generateInvoice is idempotent — no risk of duplicate emails via the
-        // delivery path (each caller runs once per state change).
+       
         const invoice = await Invoice.findOne({ order: order._id }).populate('corporate', 'email companyName');
         if (invoice?.corporate?.email) {
           await emailService.sendInvoice(invoice);
@@ -133,8 +125,6 @@ const assignOrder = async (req, res) => {
     const { staffId } = req.body;
     if (!staffId) return sendError(res, 400, 'staffId is required');
 
-    // Tenant-scope the staff user — prevents cross-tenant assignment. Must be
-    // an active admin/staff role within this business.
     const staff = await User.findOne({
       _id: staffId,
       business: req.businessId,
@@ -156,8 +146,7 @@ const assignOrder = async (req, res) => {
     await order.save();
     await order.populate('corporate', 'email companyName').populate('assignedTo', 'name email');
 
-    // Fire-and-forget: staff email + in-app notifications to staff and
-    // corporate users. Don't block the HTTP response on the mailer.
+    
     notificationService.notifyOrderAssigned(order, staff._id, req.user?._id)
       .catch(err => console.error('[assignOrder] notifyOrderAssigned failed:', err.message));
 
@@ -165,11 +154,7 @@ const assignOrder = async (req, res) => {
   } catch (error) { return handleError(res, error, 'assignOrder'); }
 };
 
-// ─── Bulk pre-delivery reminders (item #11) ─────────────────────────────────
-// Finds orders delivering in the next `days` days (inclusive of today) whose
-// status isn't terminal, emails each corporate, and returns a count. Idempotent
-// in practice — re-running simply re-sends; callers can tighten the window or
-// add a `preDeliveryAlertSent: false` filter later if spam becomes an issue.
+
 const sendBulkDeliveryReminders = async (req, res) => {
   try {
     const days = Math.max(1, Math.min(14, Number(req.query.days) || 2));
@@ -198,7 +183,6 @@ const sendBulkDeliveryReminders = async (req, res) => {
       }
     }
 
-    // Mark so the existing cron can skip the ones we just handled.
     if (sent > 0) {
       await Order.updateMany(
         { _id: { $in: candidates.map(o => o._id) } },
@@ -218,8 +202,7 @@ const sendBulkDeliveryReminders = async (req, res) => {
 const cancelOrder = async (req, res) => {
   try {
     const { reason } = req.body;
-    // Atomic transition gate via $in of source states. Avoids a race between
-    // read-validate-update when two admins cancel at once.
+ 
     const sources = Object.entries(ORDER_STATE_MACHINE)
       .filter(([, targets]) => targets.includes('cancelled'))
       .map(([src]) => src);
@@ -230,7 +213,6 @@ const cancelOrder = async (req, res) => {
       { new: true },
     );
     if (!order) {
-      // Either not found or already in a terminal state.
       const existing = await Order.findOne({ _id: req.params.id, business: req.businessId });
       if (!existing) return sendError(res, 404, 'Order not found');
       return sendError(res, 400, illegalTransitionMessage(existing.status, 'cancelled'));

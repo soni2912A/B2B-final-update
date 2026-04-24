@@ -3,16 +3,12 @@ const User = require('../../models/User.model');
 const gc = require('../../services/googleCalendar.service');
 const { sendSuccess, sendError } = require('../../utils/responseHelper');
 
-// Frontend base URL to redirect back to after OAuth dance. Prefers the first
-// CLIENT_URL entry (matches how auth.controller resolves email links).
+
 function clientBase() {
   return (process.env.CLIENT_URL || '').split(',')[0].trim() || 'http://localhost:5173';
 }
 
-// GET /auth/google/connect — authenticated. Generates a one-time `state`
-// token, stashes it on the user row, and returns { url } for the frontend to
-// redirect to. We don't 302 here because the request comes in via fetch() with
-// an Authorization header, which wouldn't survive a browser-level redirect.
+
 const startGoogleConnect = async (req, res) => {
   try {
     if (!gc.isConfigured()) {
@@ -30,10 +26,7 @@ const startGoogleConnect = async (req, res) => {
   }
 };
 
-// GET /auth/google/callback?code=…&state=… — public. Google redirects the
-// user's browser here after consent. We parse `state` to identify the user,
-// exchange the code for tokens, persist them, then 302 to the frontend
-// Settings page with a ?google=connected flag (or ?google=error=…).
+
 const handleGoogleCallback = async (req, res) => {
   const home = `${clientBase()}/?page=admin-settings`;
 
@@ -51,9 +44,7 @@ const handleGoogleCallback = async (req, res) => {
     }
     const [userId, stateToken] = String(state).split(':');
 
-    // Validate state against the user row to prevent CSRF. We selected the
-    // field via + because `pendingState` isn't a top-level tokens field but is
-    // still not returned by default projections (nested under googleCalendar).
+    
     const user = await User.findById(userId).select('+googleCalendar.pendingState');
     if (!user || user.googleCalendar?.pendingState !== stateToken) {
       return res.redirect(`${home}&google=error&google_reason=state_mismatch`);
@@ -61,9 +52,7 @@ const handleGoogleCallback = async (req, res) => {
 
     const { tokens, email } = await gc.exchangeCodeForTokens(code);
     if (!tokens.refresh_token) {
-      // Google only issues a refresh token on first consent (or re-consent via
-      // prompt=consent). If absent, surface an error so we don't persist half-
-      // configured state that can't refresh.
+     
       return res.redirect(`${home}&google=error&google_reason=no_refresh_token`);
     }
 
@@ -74,7 +63,7 @@ const handleGoogleCallback = async (req, res) => {
       refreshToken: tokens.refresh_token,
       expiresAt: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
     };
-    // pendingState is a one-shot — clear it so it can't be replayed.
+   
     user.markModified('googleCalendar');
     await user.save({ validateBeforeSave: false });
 
@@ -86,9 +75,7 @@ const handleGoogleCallback = async (req, res) => {
   }
 };
 
-// POST /auth/google/disconnect — authenticated. Revokes with Google (best
-// effort), then clears the stored tokens regardless of whether the remote
-// revoke succeeded.
+
 const disconnectGoogle = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('+googleCalendar.refreshToken');
@@ -105,9 +92,7 @@ const disconnectGoogle = async (req, res) => {
   }
 };
 
-// GET /auth/google/status — authenticated. Tells the frontend whether the
-// feature is configured AND whether this user has connected. Cheap — safe to
-// call on every Settings page open.
+
 const getGoogleStatus = async (req, res) => {
   try {
     const configured = gc.isConfigured();

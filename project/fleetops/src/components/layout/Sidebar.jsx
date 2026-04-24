@@ -7,15 +7,12 @@ export default function Sidebar() {
   const { user, role, page, navigate, logout, sidebarOpen } = useApp()
   const rawNav = NAV_MAP[role] || NAV_MAP.admin
 
-  // Filter out nav items the user doesn't have permission for, then drop any
-  // section headers left without any items behind them. Keeps the sidebar from
-  // showing a section title with nothing under it.
+  
   const filtered = []
   for (let i = 0; i < rawNav.length; i++) {
     const item = rawNav[i]
     if (item.section) {
-      // Only keep the header if at least one subsequent (pre-next-section) item
-      // passes the permission check.
+      
       const nextSection = rawNav.slice(i + 1).findIndex(x => x.section)
       const slice = nextSection === -1 ? rawNav.slice(i + 1) : rawNav.slice(i + 1, i + 1 + nextSection)
       if (slice.some(x => !x.section && hasPermission(user, x.perm))) filtered.push(item)

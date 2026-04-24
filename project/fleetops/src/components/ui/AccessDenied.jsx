@@ -2,11 +2,7 @@ import React from 'react'
 import { useApp } from '../../AppContext.jsx'
 import { Btn } from './index.jsx'
 
-// Shown when a user navigates to a page whose `perm` isn't in their
-// `user.permissions`. The route guard is a frontend-only courtesy — the real
-// enforcement is backend middleware, which the permission tokens already feed
-// (see middleware/role.middleware.js `checkPermission`). This page gives a
-// useful explanation instead of a blank or broken view.
+
 export default function AccessDenied({ perm }) {
   const { navigate, role, user } = useApp()
   const defaultPage =

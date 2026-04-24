@@ -5,7 +5,6 @@ const { sendSuccess, sendError } = require('../../utils/responseHelper');
 const XLSX = require('xlsx');
 const PDFDocument = require('pdfkit');
 
-// ─── Shared helpers ──────────────────────────────────────────────────────────
 function buildOrderMatch(req, { dateField = 'createdAt' } = {}) {
   const { from, to, corporate } = req.query;
   const match = { business: req.businessId };
@@ -57,7 +56,6 @@ function fmtINR(n) {
   return '₹' + Number(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 0 });
 }
 
-// ─── Overview — combined report for legacy /admin/reports endpoint ───────────
 const getReportOverview = async (req, res) => {
   try {
     const match = buildOrderMatch(req);
@@ -96,7 +94,6 @@ const getReportOverview = async (req, res) => {
   } catch (e) { return sendError(res, 500, e.message); }
 };
 
-// ─── Sales report — per-day breakdown + top clients + summary ────────────────
 const getSalesReport = async (req, res) => {
   try {
     const match = buildOrderMatch(req);
@@ -137,7 +134,6 @@ const getSalesReport = async (req, res) => {
   }
 };
 
-// ─── Delivery report — status counts + list ──────────────────────────────────
 const getDeliveryReport = async (req, res) => {
   try {
     const { from, to, corporate } = req.query;
@@ -185,7 +181,6 @@ const getDeliveryReport = async (req, res) => {
   }
 };
 
-// ─── Clients report — per-corporate ranking ──────────────────────────────────
 const getClientsReport = async (req, res) => {
   try {
     const match = buildOrderMatch(req);
@@ -222,7 +217,6 @@ const getClientsReport = async (req, res) => {
   }
 };
 
-// ─── Products report — per-product best sellers ──────────────────────────────
 const getProductsReport = async (req, res) => {
   try {
     const match = buildOrderMatch(req);
@@ -251,7 +245,6 @@ const getProductsReport = async (req, res) => {
   }
 };
 
-// Legacy /revenue endpoint preserved for backward compat ──────────────────────
 const getRevenueReport = async (req, res) => {
   try {
     const { from, to } = req.query;
@@ -276,8 +269,7 @@ const getRevenueReport = async (req, res) => {
   }
 };
 
-// ─── Export: XLSX or PDF for any of the 4 report types ───────────────────────
-// Resolves to a canonical shape: { title, columns, rows } the formatters share.
+
 async function buildExportDataset(req) {
   const type = (req.query.type || 'sales').toLowerCase();
 
@@ -410,7 +402,6 @@ async function buildExportDataset(req) {
     };
   }
 
-  // Legacy fallback: raw order list
   const match = buildOrderMatch(req);
   const orders = await Order.find(match).populate('corporate', 'companyName').lean();
   return {
@@ -505,7 +496,6 @@ function sendAsPDF(res, { title, columns, rows }, { filename, dateRange, subtitl
     });
   }
 
-  // Footer: timestamp + page numbers on every page
   const range = doc.bufferedPageRange();
   const generatedAt = new Date().toLocaleString('en-GB');
   for (let i = range.start; i < range.start + range.count; i++) {

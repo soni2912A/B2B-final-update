@@ -32,7 +32,6 @@ export default function AcceptInvitePage() {
       const newToken = res.data?.token
       const user     = res.data?.user
       if (!newToken || !user) throw new Error('Unexpected response.')
-      // Clean the URL before logging in so the React tree re-renders into the main app.
       window.history.replaceState({}, '', '/')
       setDone(true)
       showToast('Welcome — your account is active.')

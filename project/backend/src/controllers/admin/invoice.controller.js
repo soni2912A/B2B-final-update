@@ -18,9 +18,7 @@ const handleError = (res, error, tag) => {
   return sendError(res, 500, error.message);
 };
 
-// Shared filter builder used by list + export so one edit changes both.
-// `search` matches invoiceNumber OR the referenced order's orderNumber via a
-// two-step lookup (cheaper than a $lookup aggregation for a single search term).
+
 const buildFilter = async (req) => {
   const { search, status, from, to, corporate } = req.query;
   const filter = { business: req.businessId };
@@ -125,9 +123,7 @@ const recordPayment = async (req, res) => {
   } catch (error) { return handleError(res, error, 'recordPayment'); }
 };
 
-// Refund handling moved to controllers/admin/refund.controller.js. The old
-// invoice-tied handler skipped the pending-state workflow and had no email
-// notifications; it has been replaced by the /admin/refunds route set.
+
 
 const exportInvoices = async (req, res) => {
   try {

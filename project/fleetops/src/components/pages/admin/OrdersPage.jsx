@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react'
-import { apiFetch, apiDownload, formatDate, formatCurrency } from '../../../utils/api.js'
+import { apiFetch, apiDownload, formatCurrency } from '../../../utils/api.js'
 import { Badge, Card, PageHeader, FilterBar, TableWrap, TblAction, Pagination, Btn, Loading, Modal, FormGroup, Select, Textarea } from '../../ui/index.jsx'
 import { showToast } from '../../ui/index.jsx'
 import { InitiateRefundModal } from './RefundsPage.jsx'
@@ -20,6 +20,17 @@ const STATUS_LABEL = Object.fromEntries(STATUS_OPTIONS.map(o => [o.v, o.l]))
 
 let _stateMachineCache = null
 
+// Format date as dd/mm/yyyy
+function formatDate(dateStr) {
+  if (!dateStr) return '—'
+  const d = new Date(dateStr)
+  if (isNaN(d)) return '—'
+  const dd = String(d.getDate()).padStart(2, '0')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const yyyy = d.getFullYear()
+  return `${dd}/${mm}/${yyyy}`
+}
+
 export default function OrdersPage() {
   const { role } = useApp()
   const isCorp = role === 'corporate_user'
@@ -34,7 +45,7 @@ export default function OrdersPage() {
   const [alertSending, setAlertSending] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [filters, setFilters]     = useState({ search: '', status: '', from: '', to: '' })
-  const [upcomingOnly, setUpcomingOnly] = useState(false)   // "Delivering in next 2 days"
+  const [upcomingOnly, setUpcomingOnly] = useState(false)
   const [sendingReminders, setSendingReminders] = useState(false)
   const [feedbackOrderIds, setFeedbackOrderIds] = useState(() => new Set())
   const isTypingRef               = useRef(false)
@@ -209,18 +220,20 @@ export default function OrdersPage() {
           <>
             <TableWrap>
               <thead>
-                <tr><th>Order No.</th><th>Corporate</th><th>Items</th><th>Delivery Date</th><th>Status</th><th>Amount</th><th>Actions</th></tr>
+                <tr><th>SR.NO</th><th>Order No.</th><th>Corporate</th><th>Items</th><th>Delivery Date</th><th>Status</th><th>Amount</th><th>Actions</th></tr>
               </thead>
               <tbody>
                 {orders.length === 0 ? (
-                  <tr><td colSpan={7} className="text-center py-10 text-text2 text-sm">No records found.</td></tr>
-                ) : orders.map(o => {
+                  <tr><td colSpan={8} className="text-center py-10 text-text2 text-sm">No records found.</td></tr>
+                ) : orders.map((o, idx) => {
                   const next = isCorp ? [] : legalNextStatuses(o.status)
+                  const isDelivered = o.status === 'delivered'
                   const canLeaveFeedback = isCorp
-                    && o.status === 'delivered'
+                    && isDelivered
                     && !feedbackOrderIds.has(String(o._id))
                   return (
                     <tr key={o._id}>
+                      <td data-label="#">{(pagination.page - 1) * pagination.limit + idx + 1}</td>
                       <td data-label="Order No."><span className="font-mono text-[12px]">{o.orderNumber}</span></td>
                       <td data-label="Corporate">{o.corporate?.companyName || '—'}</td>
                       <td data-label="Items">{o.items?.length || 1} item(s)</td>
@@ -238,7 +251,8 @@ export default function OrdersPage() {
                           {!isCorp && next.length > 0 && (
                             <TblAction onClick={() => setModal({ type: 'status', order: o, next })}>Change Status</TblAction>
                           )}
-                          {!isCorp && (
+                          {/* Alert button hidden for delivered orders */}
+                          {!isCorp && !isDelivered && (
                             <TblAction onClick={() => setAlertModal({ order: o })}>Alert</TblAction>
                           )}
                           {!isCorp && o.status === 'cancelled' && (

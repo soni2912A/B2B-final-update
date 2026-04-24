@@ -41,11 +41,11 @@ export default function AdminRegisterPage() {
   function set(k) { return e => setForm(f => ({ ...f, [k]: e.target.value })) }
 
   function validateDetails() {
-    if (!form.name.trim())         return 'Your name is required.'
+    if (!form.name.trim()) return 'Your name is required.'
     if (!/^[A-Za-z\s]+$/.test(form.name.trim())) return 'Name must contain only letters.'
     if (!form.businessName.trim()) return 'Business name is required.'
-    if (!form.email.trim())        return 'Email is required.'
-    if (form.password.length < 6)  return 'Password must be at least 6 characters.'
+    if (!form.email.trim()) return 'Email is required.'
+    if (form.password.length < 6) return 'Password must be at least 6 characters.'
     if (form.password !== form.confirm) return 'Passwords do not match.'
     if (form.phone.trim()) {
       const digits = form.phone.replace(/\D/g, '')
@@ -132,7 +132,7 @@ export default function AdminRegisterPage() {
           <form onSubmit={goToPlanStep}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <FormGroup label="Your Name" required>
-                <Input value={form.name} onChange={set('name')} autoComplete="name" />
+                <Input value={form.name} onChange={e => { if (/^[^0-9]*$/.test(e.target.value)) set('name')(e) }} autoComplete="name" />
               </FormGroup>
               <FormGroup label="Business Name" required>
                 <Input value={form.businessName} onChange={set('businessName')} />
@@ -142,7 +142,7 @@ export default function AdminRegisterPage() {
               <Input type="email" value={form.email} onChange={set('email')} autoComplete="email" />
             </FormGroup>
             <FormGroup label="Phone (optional)">
-              <Input value={form.phone} onChange={set('phone')} autoComplete="tel" />
+              <Input value={form.phone} onChange={e => { const v = e.target.value.replace(/[^0-9]/g, '').slice(0, 10); set('phone')({ target: { value: v } }) }} autoComplete="tel" />
             </FormGroup>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <FormGroup label="Password" required hint="At least 6 characters.">

@@ -1,9 +1,4 @@
-// Role-keyed onboarding walkthrough steps. Each step is a { icon, title,
-// body, goTo? } — `goTo` navigates to the named page after the final Next
-// (optional; steps can be informational without a destination).
-//
-// Keeping this in a dedicated data file makes it easy to tune copy without
-// touching the component, and to add roles later (e.g. finance, read-only).
+
 
 export const ONBOARDING_STEPS = {
   super_admin: [

@@ -1,18 +1,20 @@
 const Occasion = require('../../models/Occasion.model');
-const Staff = require('../../models/Staff.model');
+const Staff    = require('../../models/Staff.model');
 const { sendSuccess, sendError } = require('../../utils/responseHelper');
 
 const ALLOWED_TYPES = ['birthday', 'anniversary', 'holiday', 'custom'];
 
 const buildTenantFilter = (req) => ({
-  business: req.businessId,
+  business:  req.businessId,
   corporate: req.user.corporate,
 });
 
 const listOccasions = async (req, res) => {
   try {
-    const { upcoming, from, to } = req.query;
+    const { upcoming, from, to, source } = req.query;
     const filter = buildTenantFilter(req);
+
+    if (source) filter.source = source;
 
     if (upcoming === 'true') {
       const today = new Date();
@@ -45,7 +47,7 @@ const listOccasions = async (req, res) => {
 
 const createOccasion = async (req, res) => {
   try {
-    const { staff, type, date, title, notes, recurringYearly, reminderDaysBefore } = req.body;
+    const { staff, type, date, title, customTitle, notes, recurringYearly, reminderDaysBefore } = req.body;
 
     if (!staff) return sendError(res, 400, 'Staff member is required.');
     if (!type || !ALLOWED_TYPES.includes(type)) {
@@ -60,31 +62,33 @@ const createOccasion = async (req, res) => {
     }
 
     const staffDoc = await Staff.findOne({
-      _id: staff,
-      business: req.businessId,
+      _id:       staff,
+      business:  req.businessId,
       corporate: req.user.corporate,
     });
     if (!staffDoc) return sendError(res, 404, 'Staff member not found for this corporate.');
 
-    const resolvedTitle = title && title.trim()
-      ? title.trim()
-      : `${staffDoc.firstName} ${staffDoc.lastName}'s ${type}`.trim();
+    let resolvedTitle = title?.trim() || customTitle?.trim() || '';
+    if (!resolvedTitle) {
+      resolvedTitle = `${staffDoc.firstName} ${staffDoc.lastName}'s ${type}`.trim();
+    }
 
     const occasion = await Occasion.create({
-      business: req.businessId,
+      business:  req.businessId,
       corporate: req.user.corporate,
-      staff: staffDoc._id,
-      title: resolvedTitle,
+      staff:     staffDoc._id,
+      title:     resolvedTitle,
+      customTitle: type === 'custom' ? (customTitle?.trim() || resolvedTitle) : undefined,
       type,
       date,
       notes,
       recurringYearly,
       reminderDaysBefore,
       createdBy: req.user._id,
+      source:    'manual',
     });
 
     await occasion.populate('staff', 'firstName lastName');
-
     return sendSuccess(res, 201, 'Occasion added.', { occasion });
   } catch (error) {
     if (error.name === 'ValidationError' || error.name === 'CastError') {
@@ -105,6 +109,10 @@ const updateOccasion = async (req, res) => {
     }
 
     const { business, corporate, createdBy, ...patch } = req.body;
+    if (patch.type === 'custom' && patch.customTitle && !patch.title) {
+      patch.title = patch.customTitle;
+    }
+
     const occasion = await Occasion.findOneAndUpdate(
       { _id: req.params.id, ...buildTenantFilter(req) },
       patch,

@@ -2,20 +2,7 @@ import React, { useRef, useState } from 'react'
 import { apiFetch, apiDownload } from '../../utils/api.js'
 import { Btn, Modal, showToast } from './index.jsx'
 
-// Generic bulk-import modal with preview. Two-step flow:
-//   1. User picks a file → calls previewPath → shows row table + errors
-//   2. User clicks "Confirm Import" → calls importPath → shows results summary
-//
-// Props:
-//   title         — modal heading
-//   templatePath  — optional GET path for a blank template download
-//   previewPath   — POST path that parses + validates without writing
-//   importPath    — POST path that commits the import
-//   columns       — [{ key, label }] for the preview table
-//   onDone        — called after successful import so parent can reload
-//
-// Both backend endpoints share the same multipart shape: field name "file",
-// xlsx/csv/xls accepted, backend middleware enforces size + mime.
+
 export default function ImportModal({
   title = 'Import',
   templatePath,
@@ -27,10 +14,10 @@ export default function ImportModal({
 }) {
   const fileRef = useRef(null)
   const [file, setFile]       = useState(null)
-  const [preview, setPreview] = useState(null)   // { rows, errors, total, … }
+  const [preview, setPreview] = useState(null)   
   const [loading, setLoading] = useState(false)
   const [importing, setImporting] = useState(false)
-  const [results, setResults] = useState(null)   // populated after import
+  const [results, setResults] = useState(null)   
 
   async function runPreview(f) {
     setLoading(true)
@@ -65,7 +52,7 @@ export default function ImportModal({
       fd.append('file', file)
       const res = await apiFetch('POST', importPath, fd, true)
       setResults(res.data?.results || res.data || {})
-      // Don't auto-close — the user wants to see the summary first.
+      
     } catch (err) {
       showToast(err.message || 'Import failed.', 'error')
     } finally {
@@ -75,9 +62,7 @@ export default function ImportModal({
 
   async function downloadTemplate() {
     if (!templatePath) return
-    // apiDownload carries the auth token, unlike window.open. Expected filename
-    // is whatever the backend sets via Content-Disposition; this fallback is
-    // only used if the response has no disposition header.
+    
     try {
       await apiDownload(templatePath, 'import-template.xlsx')
     } catch (err) {
@@ -85,7 +70,7 @@ export default function ImportModal({
     }
   }
 
-  // Once the import has run, show the results summary with a Close button.
+  
   if (results) {
     const success = results.success ?? 0
     const failed  = results.failed  ?? 0
@@ -129,8 +114,7 @@ export default function ImportModal({
     )
   }
 
-  // Preview state — show table of rows + validation errors. Confirm button
-  // is disabled if there are zero valid rows.
+  
   const hasPreview = !!preview
   const rows = preview?.rows || []
   const previewErrors = preview?.errors || []

@@ -5,16 +5,13 @@ const { protect } = require('../middleware/auth.middleware');
 const { authorize } = require('../middleware/role.middleware');
 const { tenantScope } = require('../middleware/tenant.middleware');
 
-// ─── Auth (public) ───────────────────────────────────────────────────────────
 router.use('/auth', require('./auth/auth.routes'));
 
-// ─── Middleware shorthands ────────────────────────────────────────────────────
 const adminAccess  = [protect, authorize('admin', 'staff'), tenantScope];
 const adminOnly    = [protect, authorize('admin'), tenantScope];
 const superAdmin   = [protect, authorize('super_admin')];
 const corpAccess   = [protect, authorize('corporate_user'), tenantScope];
 
-// ─── Admin routes ─────────────────────────────────────────────────────────────
 router.use('/admin/dashboard',     ...adminAccess,  require('./admin/dashboard.routes'));
 router.use('/admin/business',      ...adminAccess,  require('./admin/business.routes'));
 router.use('/admin/corporates',    ...adminAccess,  require('./admin/corporate.routes'));
@@ -38,7 +35,6 @@ router.use('/admin/notifications', ...adminAccess,  require('./admin/notificatio
 router.use('/admin/roles',         ...adminOnly,    require('./admin/role.routes'));
 router.use('/admin/refunds',       ...adminAccess,  require('./admin/refund.routes'));
 
-// ─── Corporate routes ─────────────────────────────────────────────────────────
 router.use('/corporate/dashboard',      ...corpAccess, require('./corporate/dashboard.routes'));
 router.use('/corporate/staff',          ...corpAccess, require('./corporate/staff.routes'));
 router.use('/corporate/orders',         ...corpAccess, require('./corporate/order.routes'));
@@ -51,7 +47,6 @@ router.use('/corporate/tickets',        ...corpAccess, require('./corporate/tick
 router.use('/corporate/notifications',  ...corpAccess, require('./corporate/notification.routes'));
 router.use('/corporate/discounts',       ...corpAccess, require('./corporate/discount.routes'));
 
-// ─── Super Admin routes ───────────────────────────────────────────────────────
 router.use('/super-admin/businesses',    ...superAdmin, require('./superAdmin/business.routes'));
 router.use('/super-admin/subscriptions', ...superAdmin, require('./superAdmin/subscription.routes'));
 router.use('/super-admin/login-logs',    ...superAdmin, require('./superAdmin/loginLog.routes'));

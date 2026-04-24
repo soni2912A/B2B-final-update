@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// CorporateUser = portal login user who belongs to a Corporate company
 const corporateUserSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   corporate: { type: mongoose.Schema.Types.ObjectId, ref: 'Corporate', required: true },

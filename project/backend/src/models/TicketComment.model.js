@@ -5,7 +5,7 @@ const ticketCommentSchema = new mongoose.Schema({
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   message: { type: String, required: true },
   attachments: [{ type: String }],
-  isInternal: { type: Boolean, default: false }, // internal notes hidden from corporate
+  isInternal: { type: Boolean, default: false }, 
 }, { timestamps: true });
 
 ticketCommentSchema.index({ ticket: 1, createdAt: 1 });

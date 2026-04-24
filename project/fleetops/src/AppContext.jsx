@@ -17,7 +17,6 @@ export function AppProvider({ children }) {
   const [token,   setTok]     = useState(null)
   const [role,    setRole]    = useState(null)
   const [page,    setPage]    = useState(null)
-  // Read URL path on first load so landing page links like /login and /register work
   const [authView, setAuthView] = useState(() => {
     if (typeof window !== 'undefined') {
       const p = window.location.pathname
@@ -99,7 +98,6 @@ export function AppProvider({ children }) {
     setAuthView('login')
   }
 
-  // Restore + re-validate session on boot
   useEffect(() => {
     const savedToken = localStorage.getItem('auth_token')
     const savedUser  = localStorage.getItem('auth_user')
@@ -120,14 +118,12 @@ export function AppProvider({ children }) {
     } catch { /* corrupt storage — stay on login */ }
   }, [])
 
-  // Auto-logout on 401 from any API call
   useEffect(() => {
     const onUnauth = () => logout()
     window.addEventListener('auth:unauthorized', onUnauth)
     return () => window.removeEventListener('auth:unauthorized', onUnauth)
   }, [])
 
-  // Notifications: initial load + 30s unread-count polling while logged in.
   useEffect(() => {
     if (!user || !role) {
       if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null }

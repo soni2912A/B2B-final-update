@@ -88,7 +88,6 @@ export function ResetPasswordPage() {
       if (!res.ok) throw new Error(data.message || 'Could not reset password.')
 
       const newToken = data.data?.token
-      // If backend returns a user too we auto-login; otherwise bounce back to login.
       if (newToken && data.data?.user) {
         window.history.replaceState({}, '', '/')
         showToast('Password reset — you are signed in.')

@@ -14,8 +14,8 @@ const userSchema = new mongoose.Schema({
   phone:  { type: String },
 
   isActive:        { type: Boolean, default: true },
-  isEmailVerified: { type: Boolean, default: false },   // ← added (used by register flow)
-  emailVerifyToken: { type: String },                    // ← added (used by register flow)
+  isEmailVerified: { type: Boolean, default: false },   
+  emailVerifyToken: { type: String },                    
 
   permissions: [{ type: String }],
   lastLogin:   { type: Date },
@@ -24,27 +24,19 @@ const userSchema = new mongoose.Schema({
   passwordResetToken:  { type: String },
   passwordResetExpires:{ type: Date },
 
-  // Admin-invite flow: hashed invite token + 48h expiry. Raw token goes in the
-  // email URL only; never returned by any API.
+  
   inviteToken:  { type: String, select: false },
   inviteExpire: { type: Date,   select: false },
 
   notificationPrefs: { type: mongoose.Schema.Types.Mixed, default: {} },
 
-  // Google Calendar OAuth state (optional — only populated for users who
-  // connected their Google account via /auth/google/connect). Tokens are
-  // select:false so they never leak through a stray populate or projection.
-  // Non-token fields (email, connectedAt) are safe to return in API responses
-  // so the UI can show "Connected as foo@gmail.com".
+  
   googleCalendar: {
     email:        { type: String },
     connectedAt:  { type: Date },
     accessToken:  { type: String, select: false },
     refreshToken: { type: String, select: false },
     expiresAt:    { type: Date,   select: false },
-    // CSRF state token — set when /auth/google/connect issues a URL, verified
-    // on callback to ensure the return trip came from the same session. Never
-    // returned by default projections.
     pendingState: { type: String, select: false },
   },
 }, { timestamps: true });

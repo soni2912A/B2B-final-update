@@ -23,9 +23,7 @@ const getBusiness = async (req, res) => {
   } catch (error) { return handleError(res, error, 'getBusiness'); }
 };
 
-// Allowlist: name, email, phone, address, currency, timezone, dateFormat.
-// Explicitly NOT updatable via this endpoint: subscription, taxRate, invoice*,
-// isActive, _id, timestamps.
+
 const updateBusiness = async (req, res) => {
   try {
     const { name, email, phone, address, currency, timezone, dateFormat } = req.body;
@@ -64,12 +62,12 @@ const uploadLogo = async (req, res) => {
 
     const business = await Business.findById(req.businessId);
     if (!business) {
-      // Clean up the just-saved file since we can't persist it.
+    
       fs.unlink(req.file.path, () => {});
       return sendError(res, 404, 'Business not found.');
     }
 
-    // Delete the old logo if it lives under our own uploads dir.
+    
     const oldLogo = business.logo;
     if (oldLogo && oldLogo.startsWith('/uploads/logos/')) {
       const oldFilename = path.basename(oldLogo);
@@ -84,7 +82,7 @@ const uploadLogo = async (req, res) => {
 
     return sendSuccess(res, 200, 'Logo uploaded.', { logo: business.logo });
   } catch (error) {
-    // On any failure, try to clean up the new file so we don't leak disk.
+    
     if (req.file && req.file.path) fs.unlink(req.file.path, () => {});
     return handleError(res, error, 'uploadLogo');
   }

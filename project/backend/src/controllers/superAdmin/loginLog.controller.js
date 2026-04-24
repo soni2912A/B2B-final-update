@@ -25,7 +25,6 @@ const handleError = (res, error, tag) => {
   return sendError(res, 500, error.message);
 };
 
-// Cross-tenant filter — super-admin sees events across every business.
 const buildFilter = async (req) => {
   const filter = {};
   const { search, status, from, to, userId } = req.query;

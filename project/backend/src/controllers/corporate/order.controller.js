@@ -6,11 +6,7 @@ const notificationService = require('../../services/notification.service');
 const { sendSuccess, sendError, sendPaginated } = require('../../utils/responseHelper');
 const { getPagination, buildSortQuery } = require('../../utils/pagination');
 
-// Expose the business's active delivery staff to corporate users so they can
-// pick one in the place-order wizard. Read-only, minimal projection — no
-// emails or phone numbers get leaked to corporate tenants beyond name/id.
-// The admin-side /admin/users endpoint is admin-only and includes more detail
-// that corporate users shouldn't see.
+
 const listDeliveryStaff = async (req, res) => {
   try {
     const staff = await User.find({
@@ -51,8 +47,7 @@ const placeOrder = async (req, res) => {
     }
     if (!req.user.corporate) return sendError(res, 400, 'User is not linked to a corporate account');
 
-    // Validate the optional delivery-staff assignment up front. Must be an
-    // active staff user of the SAME business — blocks cross-tenant assignment.
+  
     let assignedStaff = null;
     if (assignedTo) {
       assignedStaff = await User.findOne({
@@ -95,9 +90,7 @@ const placeOrder = async (req, res) => {
     let discountAmount = 0;
     let discountDoc = null;
     if (couponCode) {
-      // TODO: applicableTo: 'specific_corporate' filtering is not enforced anywhere today.
-      // Before production, audit Discount usage and either enforce it consistently across
-      // validate/list/place, or drop the enum value from the schema.
+      
       discountDoc = await Discount.findOne({
         business: req.businessId,
         code: couponCode.toUpperCase(),
@@ -121,9 +114,7 @@ const placeOrder = async (req, res) => {
       business: req.businessId,
       corporate: req.user.corporate,
       items: resolvedItems,
-      // If a delivery staff was picked at placement, jump straight to the
-      // 'assigned' state. Matches the admin-side /:id/assign flow so the
-      // state-machine invariant (assigned ⇒ assignedTo set) holds.
+     
       status: assignedStaff ? 'assigned' : 'new',
       deliveryDate,
       deliveryAddress,
@@ -141,8 +132,7 @@ const placeOrder = async (req, res) => {
     notificationService.notifyNewOrder(order, req.user._id)
       .catch(err => console.error('[placeOrder] notifyNewOrder failed:', err.message));
 
-    // Fire-and-forget: staff email + in-app notifications. Same helper used
-    // by the admin-side assignOrder endpoint so behaviour is consistent.
+  
     if (assignedStaff) {
       notificationService.notifyOrderAssigned(order, assignedStaff._id, req.user._id)
         .catch(err => console.error('[placeOrder] notifyOrderAssigned failed:', err.message));

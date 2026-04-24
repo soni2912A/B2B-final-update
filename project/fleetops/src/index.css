@@ -45,15 +45,12 @@ html, body, #root {
   color: rgb(var(--text1));
   font-size: 14px;
   line-height: 1.5;
-  /* Prevent any accidental horizontal scroll on the whole app — individual
-     scroll containers (tables with forced widths, long emails, etc.) still
-     scroll inside their own wrapper. */
+  
   overflow-x: hidden;
   -webkit-text-size-adjust: 100%;
 }
 
 @layer components {
-  /* Tables */
   .fleet-table { @apply w-full border-collapse text-[13px]; }
   .fleet-table th {
     @apply text-left px-3 py-[10px] text-[11px] font-medium text-text2 uppercase tracking-[0.04em]
@@ -65,12 +62,7 @@ html, body, #root {
   .fleet-table tr:last-child td { @apply border-b-0; }
   .fleet-table tr:hover td { @apply bg-surface2; }
 
-  /* ─── Table → Card transform on mobile (below md=768px) ──────────────────
-     Every <td> should carry a `data-label="Column"` attribute. On mobile,
-     the thead hides, each row becomes a bordered card, and cells stack with
-     the column name rendered as a small uppercase label above the value.
-     Cells without data-label still render (no label shown) so tables that
-     haven't been migrated yet still display without layout breakage.         */
+ 
   @media (max-width: 767px) {
     .fleet-table, .fleet-table tbody, .fleet-table tr, .fleet-table td {
       display: block;
@@ -91,38 +83,31 @@ html, body, #root {
       content: attr(data-label);
       @apply text-[10px] font-medium text-text3 uppercase tracking-[0.06em];
     }
-    /* Empty cells (no value + no label) collapse to zero height so they
-       don't leave weird gaps when a row has an all-empty action column. */
+    
     .fleet-table td:empty { display: none; }
-    /* Action cells typically wrap a flex row of buttons — let them wrap. */
     .fleet-table td[data-label="Actions"] {
       @apply pt-2 mt-1 border-t border-border;
     }
   }
 
-  /* Reduce main-content padding on mobile so full-width cards breathe. */
   @media (max-width: 767px) {
     main.flex-1 { padding: 0.75rem !important; }
   }
 
-  /* Scrollbar */
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgb(var(--scrollbar-thumb)); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: rgb(var(--scrollbar-thumb-hover)); }
 
-  /* Bar chart bars */
   .bar-animate { transition: height 0.3s ease; }
 }
 
-/* Toast animation */
 @keyframes toast-in {
   from { transform: translateY(60px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
 .toast-show { animation: toast-in 0.25s ease forwards; }
 
-/* Spinner */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinner {
   width: 16px; height: 16px;
@@ -133,7 +118,6 @@ html, body, #root {
   display: inline-block;
 }
 
-/* Wizard step line */
 .wizard-line {
   position: absolute;
   top: 14px; left: 14px; right: 14px;

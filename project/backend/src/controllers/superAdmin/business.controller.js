@@ -85,14 +85,10 @@ const createBusiness = async (req, res) => {
       return sendError(res, 400, 'Admin password must be at least 6 characters.');
     }
 
-    // Business.email is required by the schema; reuse the admin email as the
-    // primary contact. Conceptually "admin email" IS the business's primary
-    // contact in this app's current model.
+   
     const normalisedEmail = String(adminEmail).trim().toLowerCase();
 
-    // Optional: resolve plan → subscription doc. If no matching Subscription
-    // exists, we still create the Business without a subscription ref (can be
-    // set later via updateBusiness).
+   
     let subscriptionId;
     if (plan) {
       const sub = await Subscription.findOne({
@@ -111,8 +107,7 @@ const createBusiness = async (req, res) => {
       isActive: true,
     });
 
-    // User model's pre('save') hook hashes the password via bcrypt — never
-    // stored plaintext. Confirmed in User.model.js.
+   
     let adminUser;
     try {
       adminUser = await User.create({
@@ -125,9 +120,7 @@ const createBusiness = async (req, res) => {
         isEmailVerified: true,
       });
     } catch (userErr) {
-      // If admin user creation fails, roll back the business so we don't leave
-      // orphan tenants with no way to log in. Best-effort — if the rollback
-      // itself fails we log.
+      
       await Business.deleteOne({ _id: business._id }).catch(err => {
         console.error('[createBusiness] rollback failed:', err.message);
       });
@@ -159,8 +152,6 @@ const toggleBusinessStatus = async (req, res) => {
   } catch (error) { return handleError(res, error, 'toggleBusinessStatus'); }
 };
 
-// Detail view for the super-admin "View" button. Separate from getBusiness so
-// the list endpoint doesn't pay for four countDocuments calls per row.
 const getBusinessDetails = async (req, res) => {
   try {
     const id = req.params.id;

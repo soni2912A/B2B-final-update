@@ -1,6 +1,4 @@
-// Master catalog of permissions available to roles. Each entry is a
-// `module:action` token that any controller can gate via checkPermission().
-// Grouped by module for the Roles UI.
+
 
 const PERMISSIONS = [
   // Orders

@@ -239,9 +239,6 @@ const resendVerification = async (req, res) => {
   } catch (error) { return sendError(res, 500, error.message); }
 };
 
-// ─── Accept an admin invite (public) ────────────────────────────────────────
-// Flow: admin POSTs /admin/users/invite → creates inactive User with hashed token
-// → email contains raw token in the URL → invitee POSTs here with token+password.
 const acceptInvite = async (req, res) => {
   try {
     const { token, password, confirmPassword } = req.body;
@@ -289,10 +286,8 @@ const acceptInvite = async (req, res) => {
   }
 };
 
-// ─── M02 — Public plan catalog (for registration page) ──────────────────────
 const listPublicPlans = async (_req, res) => {
   try {
-    // Plan templates = no `business` binding, isActive. Ordered cheap-to-expensive.
     const plans = await Subscription.find({ business: null, isActive: true })
       .sort({ price: 1 })
       .select('name price billingCycle maxCorporates maxStaffPerCorporate maxOrders features');
@@ -300,11 +295,7 @@ const listPublicPlans = async (_req, res) => {
   } catch (error) { return sendError(res, 500, error.message); }
 };
 
-// ─── M02 — Admin self-registration with plan selection ───────────────────────
-// Creates a fresh tenant: Business + admin User + a pending Subscription bound
-// to the chosen plan. The subscription stays in `status: 'pending'` until
-// payment is completed via activateSubscription below. The admin user is
-// created `isActive: false` so they cannot log in before payment.
+
 const registerAdmin = async (req, res) => {
   try {
     const {
@@ -338,8 +329,6 @@ const registerAdmin = async (req, res) => {
 
     const rawActivationToken = crypto.randomBytes(32).toString('hex');
 
-    // Create a tenant-scoped subscription instance that copies the plan's
-    // catalog fields. It starts in 'pending' and is activated on payment.
     const subscription = await Subscription.create({
       name: plan.name,
       price: plan.price,
@@ -364,8 +353,8 @@ const registerAdmin = async (req, res) => {
       phone: phone || undefined,
       role: 'admin',
       business: business._id,
-      isActive: false,         // locked until payment completes
-      isEmailVerified: true,   // self-registered; they proved the email via the form
+      isActive: false,        
+      isEmailVerified: true,   
     });
 
     return sendSuccess(res, 201, 'Registration received — complete payment to activate.', {
@@ -388,14 +377,6 @@ const registerAdmin = async (req, res) => {
   }
 };
 
-// ─── M02 — Activate a pending subscription (mock-payment callback) ──────────
-// Public endpoint; authorised by the one-time activationToken returned from
-// registerAdmin. On success: subscription.status='active', business.isActive=true,
-// admin user.isActive=true. The token is cleared so it cannot be reused.
-//
-// NOTE: this replaces a real payment-gateway webhook. When a gateway is
-// integrated, call the gateway's capture API first and pass the transaction
-// reference in `paymentReference`.
 const activateSubscription = async (req, res) => {
   try {
     const { subscriptionId, activationToken, paymentReference } = req.body;

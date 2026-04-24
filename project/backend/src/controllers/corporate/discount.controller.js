@@ -1,12 +1,7 @@
 const Discount = require('../../models/Discount.model');
 const { sendSuccess, sendError } = require('../../utils/responseHelper');
 
-// List coupons the corporate user can browse and pick from on Place Order Step 4.
-// Tenant-scoped, active, within date window, and not over usage cap.
-//
-// TODO: applicableTo: 'specific_corporate' filtering is not enforced anywhere today.
-// Before production, audit Discount usage and either enforce it consistently across
-// validate/list/place, or drop the enum value from the schema.
+
 const listAvailableDiscounts = async (req, res) => {
   try {
     const now = new Date();
@@ -34,13 +29,7 @@ const listAvailableDiscounts = async (req, res) => {
   }
 };
 
-// Non-mutating coupon verdict for the Place Order wizard. Mirrors the exact
-// checks in corporate/order.controller.js placeOrder — no side effects, no
-// usedCount increment. That still happens at order-create time.
-//
-// Response shape per spec: 200 OK with { valid: true, discountAmount, finalAmount, code }
-// on success, or { valid: false, message } on failed validation. Bad request
-// input (missing fields, NaN) still returns 400.
+
 const validateCoupon = async (req, res) => {
   try {
     const { code, subtotal } = req.body || {};

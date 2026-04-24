@@ -10,7 +10,7 @@ const {
 } = require('../../controllers/auth/googleCalendar.controller');
 const { protect } = require('../../middleware/auth.middleware');
 
-// Public routes
+
 router.post('/login', login);
 router.post('/register', register);
 router.post('/register-admin', registerAdmin);
@@ -22,12 +22,10 @@ router.post('/forgot-password', forgotPassword);
 router.patch('/reset-password/:token', resetPassword);
 router.post('/refresh-token', refreshToken);
 
-// Google OAuth callback — public because Google's redirect lands here without
-// the user's JWT header. Auth is carried by the `state` param which this
-// handler validates against the user's stored pendingState.
+
 router.get('/google/callback', handleGoogleCallback);
 
-// Protected routes
+
 router.use(protect);
 router.get('/me', getMe);
 router.patch('/change-password', changePassword);

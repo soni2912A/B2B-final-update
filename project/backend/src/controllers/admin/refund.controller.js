@@ -14,8 +14,7 @@ const handleError = (res, error, tag) => {
   return sendError(res, 500, error.message);
 };
 
-// Send a one-line email to the corporate describing the refund status change.
-// Non-blocking — failures are logged but don't fail the API call.
+
 async function notifyCorporate(refund, subject, line) {
   try {
     const corp = await Corporate.findById(refund.corporate).select('email companyName');
@@ -40,9 +39,7 @@ async function notifyCorporate(refund, subject, line) {
   }
 }
 
-// Initiate a pending refund for a cancelled order. If an invoice already
-// exists, the refund is linked to it so the finance team can reconcile; if
-// not, the refund still tracks the intent (amount taken from order totals).
+
 const initiateRefundForOrder = async (req, res) => {
   try {
     const { amount, reason, notes } = req.body;
@@ -52,9 +49,7 @@ const initiateRefundForOrder = async (req, res) => {
       return sendError(res, 400, 'Refunds can only be initiated for cancelled orders.');
     }
 
-    // Reject duplicates — one active refund per order is the policy. Rejected
-    // refunds don't block re-initiation (the admin may want to retry with a
-    // different amount/reason).
+   
     const existing = await Refund.findOne({
       business: req.businessId,
       status: { $in: ['pending', 'processed'] },
@@ -92,8 +87,7 @@ const initiateRefundForOrder = async (req, res) => {
 
     return sendSuccess(res, 201, 'Refund initiated', { refund });
   } catch (error) {
-    // invoice is required in the Refund schema — surface a clear 400 rather
-    // than a cryptic ValidationError if no invoice was ever generated.
+    
     if (error?.errors?.invoice) {
       return sendError(res, 400, 'Cannot initiate refund: no invoice exists for this order.');
     }
@@ -130,9 +124,7 @@ const getRefund = async (req, res) => {
   } catch (error) { return handleError(res, error, 'getRefund'); }
 };
 
-// Mark a pending refund as processed. Admin provides the reference number from
-// their payment processor (Stripe refund id, bank reference, etc.). The number
-// is stored on the Refund document so finance can tie it to their reconciliation.
+
 const processRefund = async (req, res) => {
   try {
     const { referenceNumber, notes } = req.body;

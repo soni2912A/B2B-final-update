@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react'
-import { apiFetch, apiDownload, formatDate, formatCurrency } from '../../../utils/api.js'
+import { apiFetch, apiDownload, formatCurrency } from '../../../utils/api.js'
 import { Badge, Card, PageHeader, FilterBar, TableWrap, TblAction, Pagination, Btn, Loading, Modal, FormGroup, Input, Select } from '../../ui/index.jsx'
 import { showToast } from '../../ui/index.jsx'
 import { useApp } from '../../../AppContext.jsx'
@@ -14,6 +14,17 @@ const STATUS_OPTIONS = [
   { v: 'overdue',   l: 'Overdue' },
   { v: 'cancelled', l: 'Cancelled' },
 ]
+
+// Format date as dd/mm/yyyy
+function formatDate(dateStr) {
+  if (!dateStr) return '—'
+  const d = new Date(dateStr)
+  if (isNaN(d)) return '—'
+  const dd = String(d.getDate()).padStart(2, '0')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const yyyy = d.getFullYear()
+  return `${dd}/${mm}/${yyyy}`
+}
 
 export default function InvoicesPage() {
   const { role } = useApp()
@@ -122,13 +133,14 @@ export default function InvoicesPage() {
           <>
             <TableWrap>
               <thead>
-                <tr><th>Invoice No.</th><th>Corporate</th><th>Order</th><th>Amount</th><th>Due Date</th><th>Status</th><th>Actions</th></tr>
+                <tr><th>SR.NO</th><th>Invoice No.</th><th>Corporate</th><th>Order</th><th>Amount</th><th>Due Date</th><th>Status</th><th>Actions</th></tr>
               </thead>
               <tbody>
                 {invoices.length === 0 ? (
-                  <tr><td colSpan={7} className="text-center py-10 text-text2 text-sm">No records found.</td></tr>
-                ) : invoices.map(inv => (
+                  <tr><td colSpan={8} className="text-center py-10 text-text2 text-sm">No records found.</td></tr>
+                ) : invoices.map((inv, idx) => (
                   <tr key={inv._id}>
+                    <td data-label="SR.NO" className="text-text3 text-[12px]">{(pagination.page - 1) * pagination.limit + idx + 1}</td>
                     <td data-label="Invoice No."><span className="font-mono text-[12px]">{inv.invoiceNumber || '—'}</span></td>
                     <td data-label="Corporate">{inv.corporate?.companyName || '—'}</td>
                     <td data-label="Order"><span className="font-mono text-[12px]">{inv.order?.orderNumber || '—'}</span></td>

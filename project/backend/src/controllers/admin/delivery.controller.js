@@ -16,9 +16,7 @@ const handleError = (res, error, tag) => {
   return sendError(res, 500, error.message);
 };
 
-// Build the Mongo filter. Search on order.orderNumber via a two-step lookup
-// (first find matching Order _ids, then filter deliveries where order ∈ ids).
-// Avoids an aggregation pipeline for a single search field.
+
 const buildFilter = async (req) => {
   const { search, status, from, to, assignedTo } = req.query;
   const filter = { business: req.businessId };
@@ -73,8 +71,6 @@ const createDelivery = async (req, res) => {
   try {
     const { order, scheduledDate, assignedTo, deliveryAddress, notes } = req.body;
 
-    // Fail-fast validation — produces 400 with an actionable message instead
-    // of relying on Mongoose errors surfacing through the catch.
     if (!order)         return sendError(res, 400, 'Order is required.');
     if (!mongoose.isValidObjectId(order)) {
       return sendError(res, 400, 'Invalid order reference.');
@@ -87,7 +83,6 @@ const createDelivery = async (req, res) => {
       return sendError(res, 400, 'Invalid staff reference.');
     }
 
-    // Derive `corporate` from the referenced Order — never trust client.
     const ord = await Order.findOne({ _id: order, business: req.businessId });
     if (!ord) return sendError(res, 400, 'Order not found in this business.');
 
@@ -101,11 +96,7 @@ const createDelivery = async (req, res) => {
       notes,
     });
 
-    // Intentionally NOT auto-changing order status — the Order state machine
-    // is managed via the Orders page. Scheduling a delivery doesn't imply
-    // the order is ready to move through `processing → assigned`. Admins can
-    // transition explicitly. Removing the previous `Order.findByIdAndUpdate
-    // ({ status: 'assigned' })` side effect prevents state-machine bypass.
+  
 
     return sendSuccess(res, 201, 'Delivery scheduled', { delivery });
   } catch (error) { return handleError(res, error, 'createDelivery'); }
@@ -134,12 +125,7 @@ const markDelivered = async (req, res) => {
     if (!delivery) return sendError(res, 404, 'Delivery not found');
     await Order.findByIdAndUpdate(delivery.order._id, { status: 'delivered' });
 
-    // Mirror the invoice trigger from updateOrderStatus's 'delivered' branch —
-    // marking a delivery complete is the other code path that takes an order to
-    // 'delivered', and historically it was missing this side effect. Idempotent
-    // by design (invoiceService.findOne + unique index on { order }), so re-
-    // marking a delivered delivery won't duplicate. Load the fresh order so the
-    // service sees the just-updated status/fields.
+    
     const orderDoc = await Order.findById(delivery.order._id);
     if (orderDoc) {
       try { await invoiceService.generateInvoice(orderDoc); }
@@ -165,8 +151,7 @@ const markFailed = async (req, res) => {
   } catch (error) { return handleError(res, error, 'markFailed'); }
 };
 
-// Step-tracking: flip the delivery into "in transit". Only legal from
-// 'scheduled' or 'rescheduled' — don't regress from delivered/failed.
+
 const markInTransit = async (req, res) => {
   try {
     const delivery = await Delivery.findOneAndUpdate(
@@ -183,9 +168,7 @@ const markInTransit = async (req, res) => {
   } catch (error) { return handleError(res, error, 'markInTransit'); }
 };
 
-// Retry a failed delivery: reset status to 'rescheduled' with an optional new
-// scheduledDate, clear failureReason. attemptCount was already bumped by
-// markFailed, so a retry that fails again will correctly show as attempt 2, 3…
+
 const retryDelivery = async (req, res) => {
   try {
     const { scheduledDate } = req.body;
@@ -206,9 +189,7 @@ const retryDelivery = async (req, res) => {
   } catch (error) { return handleError(res, error, 'retryDelivery'); }
 };
 
-// Proof-of-delivery upload. The route applies proofUploadMiddleware('proof')
-// before this handler, so req.file is populated on success. The relative URL
-// is stored on the delivery so the /uploads static route can serve it.
+
 const uploadProofOfDelivery = async (req, res) => {
   try {
     if (!req.file) return sendError(res, 400, 'No file uploaded.');
@@ -222,9 +203,7 @@ const uploadProofOfDelivery = async (req, res) => {
   } catch (error) { return handleError(res, error, 'uploadProofOfDelivery'); }
 };
 
-// Today's deliveries — used by the coordinator/delivery-staff view.
-// When the caller is a delivery staff member (role === 'staff'), only their
-// own assigned deliveries are returned so the dashboard stays personal.
+
 const getTodaysDeliveries = async (req, res) => {
   try {
     const start = new Date(); start.setHours(0, 0, 0, 0);

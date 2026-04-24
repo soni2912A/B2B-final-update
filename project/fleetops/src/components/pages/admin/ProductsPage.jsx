@@ -8,13 +8,13 @@ import ImportModal from '../../ui/ImportModal.jsx'
 const CAT_EMOJI = { gifts: '🎁', flowers: '🌸', cakes: '🎂', hampers: '🧺' }
 
 const CATEGORY_OPTS = [
-  { v: 'gifts',   l: 'Gifts' },
+  { v: 'gifts', l: 'Gifts' },
   { v: 'flowers', l: 'Flowers' },
-  { v: 'cakes',   l: 'Cakes' },
+  { v: 'cakes', l: 'Cakes' },
   { v: 'hampers', l: 'Hampers' },
 ]
 const STATUS_OPTS = [
-  { v: 'active',   l: 'Active' },
+  { v: 'active', l: 'Active' },
   { v: 'inactive', l: 'Inactive' },
 ]
 
@@ -24,31 +24,31 @@ const productStock = p => p.stockQuantity ?? p.stock ?? 0
 export default function ProductsPage() {
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
-  const [pagination, setPag]    = useState({ total: 0, page: 1, limit: 24 })
-  const [loading, setLoading]   = useState(true)
-  const [view, setView]         = useState('grid')
-  const [showAdd, setShowAdd]   = useState(false)
+  const [pagination, setPag] = useState({ total: 0, page: 1, limit: 24 })
+  const [loading, setLoading] = useState(true)
+  const [view, setView] = useState('grid')
+  const [showAdd, setShowAdd] = useState(false)
   const [editProduct, setEditProduct] = useState(null)
   const [showImport, setShowImport] = useState(false)
   const [showBulk, setShowBulk] = useState(false)
   const [selected, setSelected] = useState(() => new Set())
-  const [filters, setFilters]   = useState({ search: '', category: '', status: '' })
+  const [filters, setFilters] = useState({ search: '', category: '', status: '' })
   const debounceRef = useRef(null)
 
   async function load(override = {}) {
-    const page    = override.page    ?? pagination.page
-    const limit   = override.limit   ?? pagination.limit
-    const search  = override.search   ?? filters.search
+    const page = override.page ?? pagination.page
+    const limit = override.limit ?? pagination.limit
+    const search = override.search ?? filters.search
     const category = override.category ?? filters.category
-    const status  = override.status   ?? filters.status
+    const status = override.status ?? filters.status
 
     setLoading(true)
     const qp = new URLSearchParams()
     qp.set('page', page)
     qp.set('limit', limit)
-    if (search)   qp.set('search', search)
+    if (search) qp.set('search', search)
     if (category) qp.set('category', category)
-    if (status)   qp.set('status', status)
+    if (status) qp.set('status', status)
 
     try {
       const res = await apiFetch('GET', '/admin/products?' + qp.toString())
@@ -71,7 +71,7 @@ export default function ProductsPage() {
   useEffect(() => {
     apiFetch('GET', '/admin/products/categories')
       .then(res => setCategories(res.data?.categories || []))
-      .catch(() => {  })
+      .catch(() => { })
   }, [])
 
   function toggleSelect(id) {
@@ -110,9 +110,9 @@ export default function ProductsPage() {
       const qp = new URLSearchParams()
       qp.set('page', 1)
       qp.set('limit', 5000)
-      if (filters.search)   qp.set('search', filters.search)
+      if (filters.search) qp.set('search', filters.search)
       if (filters.category) qp.set('category', filters.category)
-      if (filters.status)   qp.set('status', filters.status)
+      if (filters.status) qp.set('status', filters.status)
       const res = await apiFetch('GET', '/admin/products?' + qp.toString())
       const rows = res.data?.products || []
       if (rows.length === 0) {
@@ -128,13 +128,8 @@ export default function ProductsPage() {
       const lines = [headers.map(esc).join(',')]
       for (const p of rows) {
         lines.push([
-          p.name,
-          p.sku,
-          productPrice(p),
-          productStock(p),
-          p.category,
-          p.status,
-          p.description,
+          p.name, p.sku, productPrice(p), productStock(p),
+          p.category, p.status, p.description,
         ].map(esc).join(','))
       }
 
@@ -180,7 +175,7 @@ export default function ProductsPage() {
               ...categories,
             ])).filter(Boolean).sort().map(v => ({ v, l: CATEGORY_OPTS.find(o => o.v === v)?.l || v })),
           },
-          { key: 'status',   type: 'select', placeholder: 'All Statuses',   options: STATUS_OPTS },
+          { key: 'status', type: 'select', placeholder: 'All Statuses', options: STATUS_OPTS },
         ]}
         values={filters}
         onChange={(k, v) => setFilters(f => ({ ...f, [k]: v }))}
@@ -228,11 +223,12 @@ export default function ProductsPage() {
                     aria-label="Select all"
                   />
                 </th>
+                <th>SR.NO</th>
                 <th>Name</th><th>SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {products.map(p => (
+              {products.map((p, idx) => (
                 <tr key={p._id} className={selected.has(p._id) ? 'bg-accent-light' : ''}>
                   <td data-label="Select">
                     <input
@@ -242,6 +238,7 @@ export default function ProductsPage() {
                       aria-label={`Select ${p.name}`}
                     />
                   </td>
+                  <td className="text-text3 text-[12px]">{(pagination.page - 1) * pagination.limit + idx + 1}</td>
                   <td data-label="Name" className="font-medium">
                     <EditableCell
                       value={p.name}
@@ -356,7 +353,7 @@ export default function ProductsPage() {
 function BulkEditProductsModal({ ids, onClose, onDone }) {
   const [patch, setPatch] = useState({ basePrice: '', stockQuantity: '', status: '' })
   const [saving, setSaving] = useState(false)
-  const [error, setError]   = useState('')
+  const [error, setError] = useState('')
 
   function buildPatch() {
     const out = {}
@@ -399,10 +396,10 @@ function BulkEditProductsModal({ ids, onClose, onDone }) {
   return (
     <Modal
       title={`Bulk edit · ${ids.length} product${ids.length === 1 ? '' : 's'}`}
-      onClose={saving ? () => {} : onClose}
+      onClose={saving ? () => { } : onClose}
       actions={[
-        { label: saving ? 'Saving…' : 'Apply to all', primary: true, onClick: saving ? () => {} : submit },
-        { label: 'Cancel', onClick: saving ? () => {} : onClose },
+        { label: saving ? 'Saving…' : 'Apply to all', primary: true, onClick: saving ? () => { } : submit },
+        { label: 'Cancel', onClick: saving ? () => { } : onClose },
       ]}
     >
       {error && <div className="mb-3 p-2.5 rounded border border-red-200 bg-red-50 text-red-700 text-[12px]">{error}</div>}
@@ -442,7 +439,7 @@ function AddProductModal({ onClose, onSaved, existingCategories = [] }) {
   const [imagePreview, setImagePreview] = useState(null)
   const [tiers, setTiers] = useState([])
   const [saving, setSaving] = useState(false)
-  const [error, setError]   = useState('')
+  const [error, setError] = useState('')
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
   function handleImageChange(e) {
@@ -472,13 +469,16 @@ function AddProductModal({ onClose, onSaved, existingCategories = [] }) {
 
   async function save() {
     setError('')
-
-    const name        = form.name.trim()
-    const sku         = form.sku.trim()
+    const name = form.name.trim()
+    const sku = form.sku.trim()
     const description = form.description.trim()
 
     if (!name || !sku || form.price === '' || form.stock === '') {
       setError('Please fill all required fields.')
+      return
+    }
+    if (/[0-9]/.test(name)) {
+      setError('Product Name must not contain numbers.')
       return
     }
     const price = Number(form.price)
@@ -551,10 +551,10 @@ function AddProductModal({ onClose, onSaved, existingCategories = [] }) {
     <Modal
       title="Add Product"
       size="lg"
-      onClose={saving ? () => {} : onClose}
+      onClose={saving ? () => { } : onClose}
       actions={[
-        { label: saving ? 'Adding…' : 'Add Product', primary: true, onClick: saving ? () => {} : save },
-        { label: 'Cancel', onClick: saving ? () => {} : onClose },
+        { label: saving ? 'Adding…' : 'Add Product', primary: true, onClick: saving ? () => { } : save },
+        { label: 'Cancel', onClick: saving ? () => { } : onClose },
       ]}
     >
       {error && <div className="mb-3 text-[12px] text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</div>}
@@ -583,7 +583,7 @@ function AddProductModal({ onClose, onSaved, existingCategories = [] }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
         <FormGroup label="Product Name *">
-          <Input value={form.name} onChange={set('name')} placeholder="e.g. Chocolate Cake 1kg" />
+          <Input value={form.name} onChange={e => { const v = e.target.value; if (/^[^0-9]*$/.test(v)) set('name')(e) }} placeholder="e.g. Chocolate Cake 1kg" />
         </FormGroup>
         <FormGroup label="SKU *">
           <Input value={form.sku} onChange={set('sku')} placeholder="e.g. CK-001" />
@@ -640,17 +640,13 @@ function AddProductModal({ onClose, onSaved, existingCategories = [] }) {
                   placeholder={`e.g. Bronze / Silver / Gold`}
                 />
                 <Input
-                  type="number"
-                  min="1"
-                  step="1"
+                  type="number" min="1" step="1"
                   value={t.minQty}
                   onChange={e => updateTier(i, { minQty: e.target.value })}
                   placeholder="Min qty"
                 />
                 <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
+                  type="number" min="0" step="0.01"
                   value={t.price}
                   onChange={e => updateTier(i, { price: e.target.value })}
                   placeholder="Unit price"
@@ -660,9 +656,7 @@ function AddProductModal({ onClose, onSaved, existingCategories = [] }) {
                   onClick={() => removeTier(i)}
                   className="text-red-600 hover:bg-red-50 px-2 py-1 rounded text-[12px]"
                   title="Remove tier"
-                >
-                  ✗
-                </button>
+                >✗</button>
               </div>
             ))}
           </div>
@@ -687,7 +681,7 @@ function EditProductModal({ product, onClose, onSaved, existingCategories = [] }
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(product.images?.[0] || null)
   const [saving, setSaving] = useState(false)
-  const [error, setError]   = useState('')
+  const [error, setError] = useState('')
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.value }))
 
   function handleImageChange(e) {
@@ -703,8 +697,9 @@ function EditProductModal({ product, onClose, onSaved, existingCategories = [] }
   async function save() {
     setError('')
     const name = form.name.trim()
-    const sku  = form.sku.trim()
+    const sku = form.sku.trim()
     if (!name || !sku) { setError('Name and SKU are required.'); return }
+    if (/[0-9]/.test(name)) { setError('Product Name must not contain numbers.'); return }
     const price = Number(form.price)
     if (Number.isNaN(price) || price < 0) { setError('Price must be 0 or greater.'); return }
     const stock = Number(form.stock)
@@ -751,7 +746,7 @@ function EditProductModal({ product, onClose, onSaved, existingCategories = [] }
       onClose={onClose}
       size="lg"
       actions={[
-        { label: saving ? 'Saving…' : 'Save Changes', primary: true, onClick: saving ? () => {} : save },
+        { label: saving ? 'Saving…' : 'Save Changes', primary: true, onClick: saving ? () => { } : save },
         { label: 'Cancel', onClick: onClose },
       ]}
     >
@@ -781,7 +776,7 @@ function EditProductModal({ product, onClose, onSaved, existingCategories = [] }
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormGroup label="Product Name *">
-          <Input value={form.name} onChange={set('name')} placeholder="e.g. Chocolate Cake 1kg" />
+          <Input value={form.name} onChange={e => { const v = e.target.value; if (/^[^0-9]*$/.test(v)) set('name')(e) }} placeholder="e.g. Chocolate Cake 1kg" />
         </FormGroup>
         <FormGroup label="SKU *">
           <Input value={form.sku} onChange={set('sku')} placeholder="e.g. CK-001" />

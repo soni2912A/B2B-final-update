@@ -10,11 +10,7 @@ const handleError = (res, error, tag) => {
   return sendError(res, 500, error.message);
 };
 
-// Read-only directory of operational users for dropdowns (e.g. "assign delivery
-// to staff"). Deliberately separate from /admin/users — that router is
-// mount-locked to admin-only because it also hosts invite/update/delete
-// mutations. This endpoint is scoped to `adminAccess` so staff can populate
-// dropdowns without gaining access to user management.
+
 const listTeam = async (req, res) => {
   try {
     const { page, limit, skip } = getPagination(req.query);

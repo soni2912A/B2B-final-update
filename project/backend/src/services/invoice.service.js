@@ -3,16 +3,11 @@ const Invoice = require('../models/Invoice.model');
 const Business = require('../models/Business.model');
 
 const generateInvoice = async (order) => {
-  // Idempotency: if an invoice already exists for this order, return it rather
-  // than duplicating. Protects against re-triggering the delivered transition
-  // and against races between processes. The unique index on { order } also
-  // enforces this at the DB layer — E11000 below handles a concurrent race.
+  
   const existing = await Invoice.findOne({ order: order._id });
   if (existing) return existing;
 
-  // Atomic counter increment — only bump AFTER confirming we actually need a
-  // new invoice number. Prevents gaps in the counter sequence for idempotent
-  // retries.
+ 
   const business = await Business.findByIdAndUpdate(
     order.business,
     { $inc: { invoiceCounter: 1 } },
@@ -21,9 +16,7 @@ const generateInvoice = async (order) => {
   if (!business) throw new Error('Business not found for invoice generation');
   const invoiceNumber = `${business.invoicePrefix || 'INV'}-${business.invoiceCounter}`;
 
-  // Business.model.js defines the field as `paymentTerms` (days). An earlier
-  // bug here read `paymentTermsDays` which doesn't exist — so every invoice
-  // fell back to the 30-day default regardless of tenant configuration.
+
   const termDays = Number.isFinite(business.paymentTerms) ? business.paymentTerms : 30;
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + termDays);
@@ -52,9 +45,7 @@ const generateInvoice = async (order) => {
     });
     return invoice;
   } catch (err) {
-    // Concurrent race: another process inserted an invoice for this order
-    // between our findOne and insert. The unique index rejected the second.
-    // Return whichever invoice won.
+  
     if (err && err.code === 11000) {
       const winner = await Invoice.findOne({ order: order._id });
       if (winner) return winner;

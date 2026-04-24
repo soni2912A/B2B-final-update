@@ -2,8 +2,6 @@ const Role = require('../../models/Role.model');
 const { PERMISSION_KEYS, groupByModule } = require('../../config/permissions.catalog');
 const { sendSuccess, sendError } = require('../../utils/responseHelper');
 
-// Validate the `permissions[]` payload against the catalog. Returns null if
-// valid, else an error message.
 function validatePermissions(permissions) {
   if (!Array.isArray(permissions)) return 'Permissions must be an array.';
   const bad = permissions.filter(p => !PERMISSION_KEYS.includes(p));
@@ -11,14 +9,12 @@ function validatePermissions(permissions) {
   return null;
 }
 
-// Catalog is static config — exposed so the UI can render checkboxes.
 const getCatalog = async (_req, res) => {
   return sendSuccess(res, 200, 'Permission catalog', {
     permissions: groupByModule(),
   });
 };
 
-// Admin sees system templates + roles defined inside their own business.
 const listRoles = async (req, res) => {
   try {
     const roles = await Role.find({
@@ -57,8 +53,7 @@ const createRole = async (req, res) => {
 
 const updateRole = async (req, res) => {
   try {
-    // Admin can only edit roles scoped to their business. System templates are
-    // read-only from the admin side.
+    
     const role = await Role.findOne({ _id: req.params.id, scope: 'business', business: req.businessId });
     if (!role) return sendError(res, 404, 'Role not found');
     if (role.builtin) return sendError(res, 400, 'Built-in roles cannot be edited.');

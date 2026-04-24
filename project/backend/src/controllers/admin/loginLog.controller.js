@@ -25,7 +25,6 @@ const handleError = (res, error, tag) => {
   return sendError(res, 500, error.message);
 };
 
-// Build the mongo filter from query params. Same builder reused by list + export.
 const buildFilter = async (req) => {
   const filter = { business: req.businessId };
   const { search, status, from, to, userId } = req.query;

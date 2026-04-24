@@ -54,7 +54,6 @@ const importStaff = async (req, res) => {
     const rows = importExportService.parseExcel(req.file.buffer);
     if (!Array.isArray(rows) || rows.length === 0) return sendError(res, 400, 'File is empty.');
 
-    // Resolve every unique corporateEmail in one query.
     const corporateEmails = Array.from(new Set(rows
       .map(r => String(r.corporateEmail || '').trim().toLowerCase())
       .filter(Boolean)));
@@ -63,9 +62,7 @@ const importStaff = async (req, res) => {
       email: { $in: corporateEmails },
     }).select('_id email').lean();
 
-    // Detect ambiguous emails (>1 Corporate in this business sharing the same email).
-    // Staff rows pointing at such an email can't be disambiguated automatically —
-    // we collect the set here and emit a per-row error for each offending staff row below.
+    
     const countByEmail = new Map();
     for (const c of corporates) countByEmail.set(c.email, (countByEmail.get(c.email) || 0) + 1);
     const ambiguousEmails = new Set(

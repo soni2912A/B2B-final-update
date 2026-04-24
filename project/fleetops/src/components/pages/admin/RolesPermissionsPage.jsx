@@ -8,12 +8,12 @@ import {
 export default function RolesPermissionsPage({ scope = 'business' }) {
   const basePath = scope === 'system' ? '/super-admin/roles' : '/admin/roles'
   const canCreate = true
-  const canEditScope = scope // rows with this scope are editable by the current user
+  const canEditScope = scope
 
   const [roles, setRoles]       = useState([])
   const [catalog, setCatalog]   = useState({})
   const [loading, setLoading]   = useState(true)
-  const [editing, setEditing]   = useState(null)     // role object or {} for "new"
+  const [editing, setEditing]   = useState(null)
   const [confirmDel, setConfirmDel] = useState(null)
 
   async function load() {
@@ -117,16 +117,19 @@ export default function RolesPermissionsPage({ scope = 'business' }) {
                 <th>Name</th>
                 <th>Scope</th>
                 <th>Permissions</th>
-                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {roles.length === 0 ? (
-                <tr><td colSpan={4} className="text-center py-10 text-text2 text-sm">No roles defined yet.</td></tr>
+                <tr><td colSpan={3} className="text-center py-10 text-text2 text-sm">No roles defined yet.</td></tr>
               ) : roles.map(r => {
                 const editable = r.scope === canEditScope
                 return (
-                  <tr key={r._id}>
+                  <tr
+                    key={r._id}
+                    className="cursor-pointer hover:bg-surface2 transition-colors"
+                    onClick={() => startEdit(r)}
+                  >
                     <td data-label="Name">
                       <div className="font-medium">{r.name}{r.builtin && <span className="ml-1.5 text-[10px] text-text3 uppercase">built-in</span>}</div>
                       {r.description && <div className="text-[11px] text-text2">{r.description}</div>}
@@ -137,14 +140,6 @@ export default function RolesPermissionsPage({ scope = 'business' }) {
                       </span>
                     </td>
                     <td data-label="Permissions" className="text-text2">{(r.permissions || []).length} permissions</td>
-                    <td data-label="Actions">
-                      <div className="flex gap-1.5 flex-wrap">
-                        <TblAction onClick={() => startEdit(r)}>Edit</TblAction>
-                        {editable && !r.builtin && (
-                          <TblAction variant="danger" onClick={() => setConfirmDel(r)}>Delete</TblAction>
-                        )}
-                      </div>
-                    </td>
                   </tr>
                 )
               })}
@@ -153,7 +148,6 @@ export default function RolesPermissionsPage({ scope = 'business' }) {
         )}
       </Card>
 
-      {}
       {editing && (() => {
         const readOnly = editing._id && editing.scope !== canEditScope
         return (
@@ -165,6 +159,10 @@ export default function RolesPermissionsPage({ scope = 'business' }) {
               ? [{ label: 'Close', onClick: cancelEdit }]
               : [
                   { label: editing._id ? 'Save' : 'Create', primary: true, onClick: save },
+                  ...(editing._id && !editing.builtin && editing.scope === canEditScope
+                    ? [{ label: 'Delete', onClick: () => { cancelEdit(); setConfirmDel(editing) } }]
+                    : []
+                  ),
                   { label: 'Cancel', onClick: cancelEdit },
                 ]}
           >

@@ -7,6 +7,38 @@ import ImportModal from '../../ui/ImportModal.jsx'
 import GoogleSyncRowAction from '../../ui/GoogleSyncRowAction.jsx'
 import { useApp } from '../../../AppContext.jsx'
 
+// ============================================================
+// PHONE COUNTRY CODE CONFIG
+// ============================================================
+const PHONE_CC_CONFIG = {
+  '+91':  { max: 10, placeholder: '98765 43210',   flag: '🇮🇳', label: 'India' },
+  '+1':   { max: 10, placeholder: '555 000 1234',  flag: '🇺🇸', label: 'USA/Canada' },
+  '+44':  { max: 10, placeholder: '7911 123456',   flag: '🇬🇧', label: 'UK' },
+  '+61':  { max: 9,  placeholder: '412 345 678',   flag: '🇦🇺', label: 'Australia' },
+  '+971': { max: 9,  placeholder: '50 123 4567',   flag: '🇦🇪', label: 'UAE' },
+  '+65':  { max: 8,  placeholder: '8123 4567',     flag: '🇸🇬', label: 'Singapore' },
+  '+49':  { max: 10, placeholder: '1511 2345678',  flag: '🇩🇪', label: 'Germany' },
+  '+33':  { max: 9,  placeholder: '6 12 34 56 78', flag: '🇫🇷', label: 'France' },
+  '+81':  { max: 10, placeholder: '90 1234 5678',  flag: '🇯🇵', label: 'Japan' },
+  '+86':  { max: 11, placeholder: '131 2345 6789', flag: '🇨🇳', label: 'China' },
+  '+82':  { max: 10, placeholder: '10 1234 5678',  flag: '🇰🇷', label: 'S. Korea' },
+  '+92':  { max: 10, placeholder: '300 1234567',   flag: '🇵🇰', label: 'Pakistan' },
+  '+880': { max: 10, placeholder: '1711 123456',   flag: '🇧🇩', label: 'Bangladesh' },
+  '+94':  { max: 9,  placeholder: '71 234 5678',   flag: '🇱🇰', label: 'Sri Lanka' },
+  '+977': { max: 10, placeholder: '98 1234 5678',  flag: '🇳🇵', label: 'Nepal' },
+  '+966': { max: 9,  placeholder: '50 123 4567',   flag: '🇸🇦', label: 'Saudi Arabia' },
+  '+974': { max: 8,  placeholder: '3312 3456',     flag: '🇶🇦', label: 'Qatar' },
+  '+968': { max: 8,  placeholder: '9123 4567',     flag: '🇴🇲', label: 'Oman' },
+  '+973': { max: 8,  placeholder: '3600 1234',     flag: '🇧🇭', label: 'Bahrain' },
+  '+60':  { max: 10, placeholder: '12 345 6789',   flag: '🇲🇾', label: 'Malaysia' },
+  '+62':  { max: 12, placeholder: '812 3456 7890', flag: '🇮🇩', label: 'Indonesia' },
+  '+63':  { max: 10, placeholder: '917 123 4567',  flag: '🇵🇭', label: 'Philippines' },
+  '+66':  { max: 9,  placeholder: '81 234 5678',   flag: '🇹🇭', label: 'Thailand' },
+  '+27':  { max: 9,  placeholder: '71 234 5678',   flag: '🇿🇦', label: 'South Africa' },
+  '+55':  { max: 11, placeholder: '11 91234 5678', flag: '🇧🇷', label: 'Brazil' },
+  '+52':  { max: 10, placeholder: '1 234 567 890', flag: '🇲🇽', label: 'Mexico' },
+}
+
 export function CorpDashboard() {
   const { navigate } = useApp()
   const [data, setData] = useState(null)
@@ -113,12 +145,13 @@ export function CorpStaffPage() {
     await apiFetch('PATCH', `/corporate/staff/${id}/status`, { status })
     setStaff(xs => xs.map(x => x._id === id ? { ...x, status } : x))
   }
+
   async function deleteStaffMember(id, name) {
-    if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return
+    if (!window.confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) return
     try {
       await apiFetch('DELETE', `/corporate/staff/${id}`)
+      setStaff(xs => xs.filter(x => x._id !== id))
       showToast('Staff member deleted.')
-      load()
     } catch (err) {
       showToast(err.message || 'Could not delete staff member.', 'error')
     }
@@ -210,6 +243,7 @@ export function CorpStaffPage() {
                   <td data-label="Actions">
                     <div className="flex gap-1.5 flex-wrap">
                       <TblAction onClick={() => setShowAdd(true)}>Edit</TblAction>
+                      <TblAction variant="danger" onClick={() => deleteStaffMember(s._id, `${s.firstName} ${s.lastName}`)}>Delete</TblAction>
                     </div>
                   </td>
                 </tr>
@@ -248,38 +282,46 @@ export function CorpStaffPage() {
 }
 
 function AddStaffModal({ onClose, onSaved, existingEmails = [] }) {
-  const EMPTY = { firstName: '', lastName: '', email: '', phone: '', department: '', designation: '', dateOfBirth: '' }
+  const EMPTY = {
+    firstName: '', lastName: '', email: '',
+    phoneDigits: '', countryCode: '+91',
+    department: '', designation: '', dateOfBirth: '',
+  }
   const [form, setForm]     = useState(EMPTY)
   const [error, setError]   = useState('')
   const [saving, setSaving] = useState(false)
 
   function set(k) { return e => setForm(f => ({ ...f, [k]: e.target.value })) }
 
+  const ccConf = PHONE_CC_CONFIG[form.countryCode] || PHONE_CC_CONFIG['+91']
   const canSubmit = form.firstName.trim() && form.lastName.trim() && !saving
 
   async function save() {
     if (!form.firstName.trim()) { setError('First name is required.'); return }
-    if (!/^[A-Za-z\s]+$/.test(form.firstName.trim())) { setError('First name must contain only letters.'); return }
+    if (/[0-9]/.test(form.firstName.trim())) { setError('First name must contain only letters.'); return }
     if (!form.lastName.trim())  { setError('Last name is required.'); return }
-    if (!/^[A-Za-z\s]+$/.test(form.lastName.trim())) { setError('Last name must contain only letters.'); return }
+    if (/[0-9]/.test(form.lastName.trim())) { setError('Last name must contain only letters.'); return }
     if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
       setError('Email format is invalid.'); return
     }
     if (form.email.trim() && existingEmails.includes(form.email.trim().toLowerCase())) {
       setError('A staff member with this email already exists.'); return
     }
-    if (form.phone.trim()) {
-      const digitsOnly = form.phone.replace(/\D/g, '')
-      if (digitsOnly.length !== 10) { setError('Phone number must be exactly 10 digits.'); return }
+    if (form.phoneDigits.trim()) {
+      const digits = form.phoneDigits.replace(/\D/g, '')
+      if (digits.length !== ccConf.max) {
+        setError(`Phone must be exactly ${ccConf.max} digits for ${ccConf.label} (${form.countryCode}).`)
+        return
+      }
     }
     setSaving(true); setError('')
     try {
       await apiFetch('POST', '/corporate/staff', {
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        email: form.email.trim() || undefined,
-        phone: form.phone.trim() || undefined,
-        department: form.department.trim() || undefined,
+        firstName:   form.firstName.trim(),
+        lastName:    form.lastName.trim(),
+        email:       form.email.trim() || undefined,
+        phone:       form.phoneDigits.trim() ? `${form.countryCode} ${form.phoneDigits.trim()}` : undefined,
+        department:  form.department.trim() || undefined,
         designation: form.designation.trim() || undefined,
         dateOfBirth: form.dateOfBirth || undefined,
       })
@@ -300,20 +342,62 @@ function AddStaffModal({ onClose, onSaved, existingEmails = [] }) {
         { label: 'Cancel', onClick: onClose },
       ]}
     >
-      {error && <div className="mb-3 p-2.5 rounded border border-red-200 bg-red-50 text-red-700 text-[12px]">{error}</div>}
+      {error && (
+        <div className="mb-3 p-2.5 rounded border border-red-200 bg-red-50 text-red-700 text-[12px]">
+          {error}
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <FormGroup label="First Name">
-          <Input value={form.firstName} onChange={set('firstName')} placeholder="First name" />
+          <Input
+            value={form.firstName}
+            onChange={e => { if (/^[^0-9]*$/.test(e.target.value)) set('firstName')(e) }}
+            placeholder="First name"
+          />
         </FormGroup>
         <FormGroup label="Last Name">
-          <Input value={form.lastName} onChange={set('lastName')} placeholder="Last name" />
+          <Input
+            value={form.lastName}
+            onChange={e => { if (/^[^0-9]*$/.test(e.target.value)) set('lastName')(e) }}
+            placeholder="Last name"
+          />
         </FormGroup>
         <FormGroup label="Email">
           <Input type="email" value={form.email} onChange={set('email')} placeholder="staff@company.com" />
         </FormGroup>
+
+        {/* Phone Input with Country Code Dropdown */}
         <FormGroup label="Phone">
-          <PhoneInput value={form.phone} onChange={set('phone')} />
+          <div className="flex gap-1.5">
+            <select
+              value={form.countryCode}
+              onChange={e => setForm(f => ({ ...f, countryCode: e.target.value, phoneDigits: '' }))}
+              className="h-9 rounded border border-border bg-surface text-text1 text-[12px] px-1.5 flex-shrink-0 cursor-pointer focus:outline-none focus:border-accent"
+              style={{ width: '90px' }}
+            >
+              {Object.entries(PHONE_CC_CONFIG).map(([code, cfg]) => (
+                <option key={code} value={code}>
+                  {cfg.flag} {code}
+                </option>
+              ))}
+            </select>
+            <Input
+              type="tel"
+              value={form.phoneDigits}
+              onChange={e => {
+                const raw = e.target.value.replace(/[^0-9]/g, '').slice(0, ccConf.max)
+                setForm(f => ({ ...f, phoneDigits: raw }))
+              }}
+              placeholder={ccConf.placeholder}
+              maxLength={ccConf.max}
+              style={{ flex: 1, minWidth: 0 }}
+            />
+          </div>
+          <div className="text-[10px] text-text3 mt-0.5">
+            {ccConf.label}: {ccConf.max} digits required
+          </div>
         </FormGroup>
+
         <FormGroup label="Department">
           <Input value={form.department} onChange={set('department')} placeholder="HR, Sales, IT…" />
         </FormGroup>
@@ -322,7 +406,20 @@ function AddStaffModal({ onClose, onSaved, existingEmails = [] }) {
         </FormGroup>
       </div>
       <FormGroup label="Birthday">
-        <Input type="date" value={form.dateOfBirth} onChange={set('dateOfBirth')} max={new Date().toISOString().slice(0, 10)} />
+        <Input
+          type="date"
+          value={form.dateOfBirth}
+          onChange={set('dateOfBirth')}
+          max={new Date().toISOString().slice(0, 10)}
+        />
+        {form.dateOfBirth && (
+          <div className="text-[11px] text-text2 mt-1">
+            Selected: {(() => {
+              const d = new Date(form.dateOfBirth + 'T00:00:00')
+              return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`
+            })()}
+          </div>
+        )}
       </FormGroup>
     </Modal>
   )
@@ -334,12 +431,12 @@ export function PlaceOrderPage() {
   const [selectedStaff, setSelectedStaff] = useState([])
   const [items, setItems]       = useState([])
   const [delivery, setDelivery] = useState({ date: '', addrType: 'Office Address', address: '', instructions: '' })
-  const [assignedTo, setAssignedTo] = useState('')   // business staff user id (optional)
+  const [assignedTo, setAssignedTo] = useState('')
   const [remarks, setRemarks]   = useState('')
   const [loading, setLoading]   = useState(false)
 
   const [couponInput, setCouponInput] = useState('')
-  const [applied, setApplied]         = useState(null)  // { code, discountAmount, finalAmount } when valid
+  const [applied, setApplied]         = useState(null)
   const [couponError, setCouponError] = useState('')
   const [checking, setChecking]       = useState(false)
 
@@ -362,7 +459,7 @@ export function PlaceOrderPage() {
   }, [])
 
   const STEPS = ['Choose Items','Select Staff','Delivery Details','Assign Delivery Staff','Review & Confirm']
-  const FINAL_STEP = STEPS.length   // 5
+  const FINAL_STEP = STEPS.length
 
   function toggleStaff(id) {
     setSelectedStaff(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
@@ -483,7 +580,6 @@ export function PlaceOrderPage() {
     <div>
       <PageHeader title="Place New Order" />
       <Card>
-        {}
         <div className="relative flex mb-8">
           <div className="wizard-line" />
           {STEPS.map((label, i) => {
@@ -504,7 +600,6 @@ export function PlaceOrderPage() {
           })}
         </div>
 
-        {}
         {step === 1 && (
           <div>
             <div className="text-[14px] font-medium mb-3">Choose products for the order</div>
@@ -545,7 +640,6 @@ export function PlaceOrderPage() {
           </div>
         )}
 
-        {}
         {step === 2 && (
           <div>
             <div className="text-[14px] font-medium mb-3">Select staff members for this order</div>
@@ -567,7 +661,6 @@ export function PlaceOrderPage() {
           </div>
         )}
 
-        {}
         {step === 3 && (
           <div className="max-w-lg">
             <FormGroup label="Delivery Date"><Input type="date" value={delivery.date} onChange={e => setDelivery(d => ({ ...d, date: e.target.value }))} /></FormGroup>
@@ -581,7 +674,6 @@ export function PlaceOrderPage() {
           </div>
         )}
 
-        {}
         {step === 4 && (
           <div className="max-w-lg">
             <div className="text-[13px] text-text2 mb-3">
@@ -617,7 +709,6 @@ export function PlaceOrderPage() {
           </div>
         )}
 
-        {}
         {step === 5 && (
           <div className="flex flex-col gap-3">
             <div className="border border-accent rounded-lg p-4">
@@ -728,7 +819,6 @@ export function PlaceOrderPage() {
           </div>
         )}
 
-        {}
         <div className="flex justify-between mt-6 pt-4 border-t border-border">
           <Btn onClick={() => setStep(s => Math.max(1, s - 1))} disabled={step === 1}>← Back</Btn>
           {step < FINAL_STEP
@@ -756,8 +846,8 @@ export function CorpUsersPage() {
   const [users, setUsers]       = useState([])
   const [loading, setLoading]   = useState(true)
   const [showInvite, setShowInvite] = useState(false)
-  const [editing, setEditing]       = useState(null)    // user being edited
-  const [confirmToggle, setConfirmToggle] = useState(null)  // user pending toggle
+  const [editing, setEditing]       = useState(null)
+  const [confirmToggle, setConfirmToggle] = useState(null)
   const [toggling, setToggling]     = useState(false)
 
   async function load() {
@@ -879,12 +969,8 @@ function InviteCorpUserModal({ onClose, onSent }) {
 
   async function submit() {
     if (!form.name.trim())  { setError('Name is required.'); return }
-    if (!/^[A-Za-z\s]+$/.test(form.name.trim())) { setError('Name must contain only letters.'); return }
+    if (/[0-9]/.test(form.name.trim())) { setError('Name must contain only letters.'); return }
     if (!form.email.trim()) { setError('Email is required.'); return }
-    if (form.phone.trim()) {
-      const digitsOnly = form.phone.replace(/\D/g, '')
-      if (digitsOnly.length !== 10) { setError('Phone number must be exactly 10 digits.'); return }
-    }
     setSaving(true); setError('')
     try {
       await apiFetch('POST', '/corporate/users', {
@@ -912,7 +998,7 @@ function InviteCorpUserModal({ onClose, onSent }) {
       ]}
     >
       {error && <div className="mb-3 p-2.5 rounded border border-red-200 bg-red-50 text-red-700 text-[12px]">{error}</div>}
-      <FormGroup label="Full Name"><Input value={form.name} onChange={set('name')} placeholder="Jane Doe" /></FormGroup>
+      <FormGroup label="Full Name"><Input value={form.name} onChange={e => { if (/^[^0-9]*$/.test(e.target.value)) set('name')(e) }} placeholder="Jane Doe" /></FormGroup>
       <FormGroup label="Email"><Input type="email" value={form.email} onChange={set('email')} placeholder="colleague@company.com" /></FormGroup>
       <FormGroup label="Phone (optional)"><PhoneInput value={form.phone} onChange={set('phone')} /></FormGroup>
       <div className="mt-3 p-3 bg-surface2 rounded text-xs text-text2">They will have access to your corporate portal once activated.</div>
@@ -931,11 +1017,7 @@ function EditCorpUserModal({ user, onClose, onSaved }) {
 
   async function submit() {
     if (!form.name.trim()) { setError('Name is required.'); return }
-    if (!/^[A-Za-z\s]+$/.test(form.name.trim())) { setError('Name must contain only letters.'); return }
-    if (form.phone.trim()) {
-      const digitsOnly = form.phone.replace(/\D/g, '')
-      if (digitsOnly.length !== 10) { setError('Phone number must be exactly 10 digits.'); return }
-    }
+    if (/[0-9]/.test(form.name.trim())) { setError('Name must contain only letters.'); return }
     setSaving(true); setError('')
     try {
       await apiFetch('PUT', `/corporate/users/${user._id}`, {
@@ -964,7 +1046,7 @@ function EditCorpUserModal({ user, onClose, onSaved }) {
         <Input type="email" value={user.email || ''} disabled />
       </FormGroup>
       <FormGroup label="Full Name">
-        <Input value={form.name} onChange={set('name')} />
+        <Input value={form.name} onChange={e => { if (/^[^0-9]*$/.test(e.target.value)) set('name')(e) }} />
       </FormGroup>
       <FormGroup label="Phone">
         <PhoneInput value={form.phone} onChange={set('phone')} />
@@ -976,6 +1058,9 @@ function EditCorpUserModal({ user, onClose, onSaved }) {
   )
 }
 
+// ============================================================
+// OCCASIONS PAGE CONSTANTS
+// ============================================================
 const OCC_MONTH_NAMES  = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const OCC_MONTH_SHORT  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const OCC_WEEKDAYS     = ['Su','Mo','Tu','We','Th','Fr','Sa']
@@ -1006,6 +1091,7 @@ export function CorpOccasionsPage() {
   const [formError, setFormError]       = useState('')
   const [saving, setSaving]             = useState(false)
   const [selectedDay, setSelectedDay]   = useState(null)
+  const [deletingId, setDeletingId]     = useState(null)
 
   const year        = currentMonth.getFullYear()
   const month       = currentMonth.getMonth()
@@ -1032,7 +1118,7 @@ export function CorpOccasionsPage() {
     }
   }
 
-  useEffect(() => { loadOccasions()  }, [year, month])
+  useEffect(() => { loadOccasions() }, [year, month])
 
   useEffect(() => {
     apiFetch('GET', '/corporate/staff')
@@ -1066,6 +1152,21 @@ export function CorpOccasionsPage() {
     setForm(EMPTY_OCC_FORM)
     setFormError('')
     setSaving(false)
+  }
+
+  async function deleteOccasion(id) {
+    if (!window.confirm('Are you sure you want to delete this occasion?')) return
+    setDeletingId(id)
+    try {
+      await apiFetch('DELETE', `/corporate/occasions/${id}`)
+      setOccasions(list => list.filter(o => o._id !== id))
+      if (selectedDay != null) setSelectedDay(null)
+      showToast('Occasion deleted.')
+    } catch (err) {
+      showToast(err.message || 'Could not delete.', 'error')
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   async function submitAdd() {
@@ -1118,6 +1219,7 @@ export function CorpOccasionsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-5">
         <Card>
+          {/* Month navigation */}
           <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
             <div className="flex items-center gap-2">
               <Btn size="sm" onClick={() => setCurrentMonth(new Date(year, month - 1, 1))}>‹</Btn>
@@ -1129,15 +1231,20 @@ export function CorpOccasionsPage() {
             <Btn size="sm" onClick={() => setCurrentMonth(new Date())}>Today</Btn>
           </div>
 
+          {/* Calendar grid */}
           <div className="grid grid-cols-7 gap-1 min-w-[280px]">
             {OCC_WEEKDAYS.map((d, i) => (
               <div key={d + i} className="text-center text-[11px] font-medium text-text2 py-1.5">{d}</div>
             ))}
+
+            {/* Leading grey days */}
             {Array.from({ length: leading }, (_, i) => (
               <div key={`lead-${i}`} className="min-h-[44px] sm:aspect-square sm:min-h-0 rounded flex items-center justify-center text-[12px] text-text3 opacity-40">
                 {prevLast - leading + i + 1}
               </div>
             ))}
+
+            {/* Current month days */}
             {Array.from({ length: daysInMonth }, (_, i) => {
               const day = i + 1
               const evs = eventMap[day] || []
@@ -1149,10 +1256,15 @@ export function CorpOccasionsPage() {
                   key={day}
                   type="button"
                   onClick={() => {
-                    if (evs.length > 0) setSelectedDay(day)
-                    else openAddModal(dateStr)
+                    if (evs.length > 0) {
+                      // Toggle selection; panel shows existing events + prominent Add button
+                      setSelectedDay(selectedDay === day ? null : day)
+                    } else {
+                      // Empty day — go straight to add modal
+                      openAddModal(dateStr)
+                    }
                   }}
-                  title={evs.length ? `${evs.length} occasion${evs.length > 1 ? 's' : ''}` : `Add occasion on ${dateStr}`}
+                  title={evs.length ? `${evs.length} occasion${evs.length > 1 ? 's' : ''} — click to view & add more` : `Add occasion on ${dateStr}`}
                   className={`relative min-h-[44px] sm:aspect-square sm:min-h-0 rounded flex flex-col items-center justify-center cursor-pointer text-[12px] border transition-all outline-none
                     ${isSelected ? 'bg-accent text-white border-accent' : ''}
                     ${!isSelected && isToday ? 'bg-accent-light text-accent font-semibold border-accent' : ''}
@@ -1170,6 +1282,8 @@ export function CorpOccasionsPage() {
                 </button>
               )
             })}
+
+            {/* Trailing grey days */}
             {Array.from({ length: trailing }, (_, i) => (
               <div key={`trail-${i}`} className="min-h-[44px] sm:aspect-square sm:min-h-0 rounded flex items-center justify-center text-[12px] text-text3 opacity-40">
                 {i + 1}
@@ -1179,21 +1293,44 @@ export function CorpOccasionsPage() {
 
           {loading && <div className="text-[11px] text-text3 mt-3 text-center">Loading…</div>}
 
+          {/* ── Day detail panel (shown when a day with events is selected) ── */}
           {selectedDay != null && dayDetails.length > 0 && (
             <div className="mt-5 border-t border-border pt-4">
-              <div className="flex items-center justify-between mb-2">
+              {/* Panel header */}
+              <div className="flex items-center justify-between mb-3">
                 <div className="text-[13px] font-medium">
                   {OCC_MONTH_NAMES[month]} {selectedDay}, {year}
+                  <span className="ml-2 text-[11px] text-text2 font-normal">
+                    {dayDetails.length} occasion{dayDetails.length > 1 ? 's' : ''}
+                  </span>
                 </div>
-                <button type="button" onClick={() => setSelectedDay(null)} className="text-[11px] text-text2 hover:text-text1">× Close</button>
+                <div className="flex items-center gap-2">
+                  {/* ── Prominent "Add Another" button ── */}
+                  <button
+                    type="button"
+                    onClick={() => openAddModal(occIsoYMD(new Date(year, month, selectedDay)))}
+                    className="inline-flex items-center gap-1 bg-accent text-white text-[11px] font-semibold px-2.5 py-1 rounded-md hover:opacity-90 transition-opacity"
+                  >
+                    + Add Occasion
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDay(null)}
+                    className="text-[11px] text-text2 hover:text-text1 px-1"
+                  >
+                    × Close
+                  </button>
+                </div>
               </div>
+
+              {/* Event list */}
               <div className="flex flex-col gap-2">
                 {dayDetails.map(occ => (
-                  <div key={occ._id} className="flex items-start gap-2 px-2 py-1.5 rounded bg-surface2 text-[12px]">
-                    <span>{OCC_TYPE_EMOJI[occ.type] || '📅'}</span>
+                  <div key={occ._id} className="flex items-start gap-2 px-2.5 py-2 rounded-lg bg-surface2 border border-border text-[12px]">
+                    <span className="text-base leading-none mt-0.5">{OCC_TYPE_EMOJI[occ.type] || '📅'}</span>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium truncate">{occ.title}</div>
-                      <div className="text-[11px] text-text2">{renderStaffLabel(occ)} · {occ.type}</div>
+                      <div className="text-[11px] text-text2 mt-0.5">{renderStaffLabel(occ)} · {occ.type}</div>
                       {occ.notes && <div className="text-[11px] text-text2 mt-0.5">{occ.notes}</div>}
                       <GoogleSyncRowAction
                         occasion={occ}
@@ -1201,6 +1338,12 @@ export function CorpOccasionsPage() {
                         onSynced={(patch) => setOccasions(list => list.map(o => o._id === occ._id ? { ...o, ...patch } : o))}
                       />
                     </div>
+                    <button
+                      onClick={() => deleteOccasion(occ._id)}
+                      disabled={deletingId === occ._id}
+                      className="text-red-400 hover:text-red-600 text-[13px] disabled:opacity-50 flex-shrink-0 mt-0.5"
+                      title="Delete"
+                    >🗑</button>
                   </div>
                 ))}
               </div>
@@ -1208,6 +1351,7 @@ export function CorpOccasionsPage() {
           )}
         </Card>
 
+        {/* Upcoming occasions sidebar */}
         <Card>
           <CardHeader title="Upcoming Occasions" />
           {upcoming.length === 0 ? (
@@ -1226,7 +1370,15 @@ export function CorpOccasionsPage() {
                       {e.type.charAt(0).toUpperCase() + e.type.slice(1)} · {formatDate(e.date)} · {daysUntil(e.date)}
                     </div>
                   </div>
-                  <Badge status={e.type === 'birthday' ? 'assigned' : e.type === 'anniversary' ? 'processing' : 'new'} />
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    <Badge status={e.type === 'birthday' ? 'assigned' : e.type === 'anniversary' ? 'processing' : 'new'} />
+                    <button
+                      onClick={() => deleteOccasion(e._id)}
+                      disabled={deletingId === e._id}
+                      className="text-[10px] text-red-400 hover:text-red-600 disabled:opacity-50"
+                      title="Delete"
+                    >🗑 delete</button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1234,6 +1386,7 @@ export function CorpOccasionsPage() {
         </Card>
       </div>
 
+      {/* Add Occasion Modal */}
       {showAdd && (
         <Modal
           title="Add Occasion"
@@ -1273,6 +1426,9 @@ export function CorpOccasionsPage() {
   )
 }
 
+// ============================================================
+// TICKETS PAGE
+// ============================================================
 const TKT_CATEGORY_OPTIONS = [
   { value: 'general',   label: 'General' },
   { value: 'order',     label: 'Order' },
@@ -1297,7 +1453,7 @@ export function CorpTicketsPage() {
   const [form, setForm]             = useState(EMPTY_TICKET_FORM)
   const [formError, setFormError]   = useState('')
   const [saving, setSaving]         = useState(false)
-  const [detail, setDetail]         = useState(null)          // { ticket, comments } | null
+  const [detail, setDetail]         = useState(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [commentError, setCommentError] = useState('')
@@ -1402,9 +1558,11 @@ export function CorpTicketsPage() {
         <Btn variant="primary" onClick={openCreateModal}>+ New Ticket</Btn>
       </PageHeader>
 
-      <div className="grid grid-cols-1 gap-4 mb-5">
+      <div className="grid grid-cols-3 gap-4 mb-5">
         {[
-          ['Open', counts.open, 'bg-blue-50 text-blue-800'],
+          ['Open',         counts.open,       'bg-blue-50 text-blue-800'],
+          ['In Progress',  counts.inProgress, 'bg-amber-50 text-amber-800'],
+          ['Resolved',     counts.resolved,   'bg-green-50 text-green-800'],
         ].map(([label, n, tone]) => (
           <div key={label} className="bg-surface border border-border rounded-lg p-4">
             <div className="flex items-center justify-between">

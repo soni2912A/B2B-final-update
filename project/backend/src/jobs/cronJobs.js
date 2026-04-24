@@ -7,7 +7,6 @@ const notificationService = require('../services/notification.service');
 
 const OCCASION_REMINDER_LEAD_DAYS = parseInt(process.env.OCCASION_REMINDER_LEAD_DAYS) || 7;
 
-// Pre-delivery alert — runs every day at 8 AM
 const preDeliveryAlertJob = cron.schedule('0 8 * * *', async () => {
   try {
     const twoDaysFromNow = new Date();
@@ -31,7 +30,6 @@ const preDeliveryAlertJob = cron.schedule('0 8 * * *', async () => {
   }
 }, { scheduled: false });
 
-// Low stock alert — runs every day at 9 AM
 const lowStockAlertJob = cron.schedule('0 9 * * *', async () => {
   try {
     const lowStockProducts = await Product.find({
@@ -41,7 +39,6 @@ const lowStockAlertJob = cron.schedule('0 9 * * *', async () => {
 
     for (const product of lowStockProducts) {
       console.log(`Low stock alert: ${product.name} (${product.stockQuantity} remaining)`);
-      // Send email alert to business admin
       try {
         const User = require('../models/User.model');
         const admin = await User.findOne({ business: product.business?._id, role: 'admin', isActive: true });
@@ -57,7 +54,6 @@ const lowStockAlertJob = cron.schedule('0 9 * * *', async () => {
   }
 }, { scheduled: false });
 
-// Feedback request — runs every day at 10 AM
 const feedbackRequestJob = cron.schedule('0 10 * * *', async () => {
   try {
     const yesterday = new Date();
@@ -79,7 +75,6 @@ const feedbackRequestJob = cron.schedule('0 10 * * *', async () => {
   }
 }, { scheduled: false });
 
-// Overdue invoice check — runs every day at 7 AM
 const overdueInvoiceJob = cron.schedule('0 7 * * *', async () => {
   try {
     const Invoice = require('../models/Invoice.model');
@@ -93,7 +88,6 @@ const overdueInvoiceJob = cron.schedule('0 7 * * *', async () => {
   }
 }, { scheduled: false });
 
-// Upcoming occasion reminder — runs every day at 7:30 AM
 const runUpcomingOccasionReminders = async () => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -128,8 +122,6 @@ const runUpcomingOccasionReminders = async () => {
         });
         sent += 1;
       }
-      // Always stamp reminderSentAt, even on opt-out — otherwise the cron re-evaluates the
-      // same occasion every day and would refire if the user later toggles the pref on.
       await Occasion.findByIdAndUpdate(occasion._id, { reminderSentAt: new Date() });
     } catch (err) {
       console.error(`[upcomingOccasionReminder] occasion ${occasion._id} failed:`, err.message);

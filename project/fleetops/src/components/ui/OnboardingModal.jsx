@@ -3,11 +3,7 @@ import { useApp } from '../../AppContext.jsx'
 import { Btn, Modal } from './index.jsx'
 import { ONBOARDING_STEPS, onboardingKey } from '../../data/onboardingSteps.js'
 
-// First-login walkthrough. Shown automatically by AppShell when localStorage
-// flag is missing; also mounted on-demand from Settings via `forceOpen`.
-//
-// Modal-based rather than DOM-anchored tooltip tour — easier to maintain,
-// doesn't fight responsive layouts, and survives UI changes without breaking.
+
 export default function OnboardingModal({ onClose }) {
   const { user, role, navigate } = useApp()
   const steps = ONBOARDING_STEPS[role] || []
@@ -47,8 +43,7 @@ export default function OnboardingModal({ onClose }) {
       title={`Getting started · ${idx + 1} of ${steps.length}`}
       onClose={skip}
       actions={[
-        // Primary action is Next or Finish depending on position. Secondary
-        // is "Skip tour" always — we never lock the user in.
+  
         { label: isLast ? "Got it — let's go" : 'Next →', primary: true, onClick: next },
         ...(idx > 0 ? [{ label: '← Back', onClick: back }] : []),
         { label: 'Skip tour', onClick: skip },
@@ -78,17 +73,15 @@ export default function OnboardingModal({ onClose }) {
   )
 }
 
-// Helper for other code (SettingsPage replay button) to clear the flag.
+
 export function resetOnboarding(userId) {
   try { localStorage.removeItem(onboardingKey(userId)) } catch { /* private mode — harmless */ }
 }
 
-// Helper for AppShell auto-show — returns true if the user hasn't completed
-// the walkthrough yet. Missing key or non-'1' value both count as incomplete.
 export function shouldShowOnboarding(userId) {
   try {
     return localStorage.getItem(onboardingKey(userId)) !== '1'
   } catch {
-    return false   // private mode — avoid spamming the modal every render
+    return false  
   }
 }

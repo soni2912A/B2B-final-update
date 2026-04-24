@@ -29,7 +29,7 @@ export default function RefundsPage() {
   const [pagination, setPag]      = useState({ total: 0, page: 1, limit: 20 })
   const [loading, setLoading]     = useState(true)
   const [filters, setFilters]     = useState({ status: '' })
-  const [processing, setProcessing] = useState(null)   // refund row being processed
+  const [processing, setProcessing] = useState(null)
   const [rejecting, setRejecting]   = useState(null)
 
   const load = useCallback(async (opts = {}) => {
@@ -71,15 +71,16 @@ export default function RefundsPage() {
             <TableWrap>
               <thead>
                 <tr>
-                  <th>Corporate</th><th>Order</th><th>Amount</th><th>Reason</th>
+                  <th>SR.NO</th><th>Corporate</th><th>Order</th><th>Amount</th><th>Reason</th>
                   <th>Reference</th><th>Status</th><th>Initiated</th><th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {refunds.length === 0 ? (
-                  <tr><td colSpan={8} className="text-center py-10 text-text2 text-sm">No refunds yet.</td></tr>
-                ) : refunds.map(r => (
+                  <tr><td colSpan={9} className="text-center py-10 text-text2 text-sm">No refunds yet.</td></tr>
+                ) : refunds.map((r, idx) => (
                   <tr key={r._id}>
+                    <td data-label="SR.NO" className="text-text3 text-[12px]">{(pagination.page - 1) * pagination.limit + idx + 1}</td>
                     <td data-label="Corporate" className="font-medium">{r.corporate?.companyName || '—'}</td>
                     <td data-label="Order"><span className="font-mono text-[12px]">{r.invoice?.order?.orderNumber || '—'}</span></td>
                     <td data-label="Amount" className="font-semibold">{formatCurrency(r.amount)}</td>
@@ -210,8 +211,6 @@ export function RejectRefundModal({ refund, onClose, onDone }) {
   )
 }
 
-// Small modal shown from OrdersPage when an admin clicks "Refund" on a cancelled
-// order. Initiates a new pending Refund via /admin/orders/:id/initiate-refund.
 export function InitiateRefundModal({ order, onClose, onDone }) {
   const [amount, setAmount] = useState(order.totalAmount || 0)
   const [reason, setReason] = useState(order.cancelReason || '')

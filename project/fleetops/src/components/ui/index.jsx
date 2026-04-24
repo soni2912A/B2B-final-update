@@ -1,12 +1,11 @@
 import React, { useEffect, useRef } from 'react'
 import { badgeClass, initials } from '../../utils/api.js'
 
-// ─── Badge ────────────────────────────────────────────────────────────────────
+
 export function Badge({ status }) {
   return <span className={badgeClass(status)}>{status?.replace(/_/g, ' ')}</span>
 }
 
-// ─── Avatar ───────────────────────────────────────────────────────────────────
 export function Avatar({ name, size = 'sm' }) {
   const sz = size === 'lg' ? 'w-11 h-11 text-base' : 'w-7 h-7 text-[10px]'
   return (
@@ -16,7 +15,6 @@ export function Avatar({ name, size = 'sm' }) {
   )
 }
 
-// ─── Button ───────────────────────────────────────────────────────────────────
 export function Btn({ children, variant = 'secondary', size = 'md', onClick, disabled, className = '', type = 'button', title }) {
   const base = 'inline-flex items-center gap-1.5 rounded font-medium font-sans cursor-pointer border transition-all duration-150 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed'
   const sizes = { sm: 'px-2.5 py-1 text-xs', md: 'px-3.5 py-1.5 text-[13px]', lg: 'px-4 py-2 text-sm' }
@@ -33,9 +31,7 @@ export function Btn({ children, variant = 'secondary', size = 'md', onClick, dis
   )
 }
 
-// ─── Card ─────────────────────────────────────────────────────────────────────
-// Padding scales down on mobile (p-3.5) so 320px screens have breathing room
-// around 2px-wide card borders without content reaching the edge.
+
 export function Card({ children, className = '', noPad }) {
   return (
     <div className={`bg-surface border border-border rounded-lg ${noPad ? '' : 'p-3.5 sm:p-5'} ${className}`}>
@@ -56,7 +52,7 @@ export function CardHeader({ title, subtitle, children }) {
   )
 }
 
-// ─── Stat card ────────────────────────────────────────────────────────────────
+
 export function StatCard({ label, value, delta, deltaType = 'up' }) {
   return (
     <div className="bg-surface border border-border rounded-lg p-4">
@@ -67,10 +63,7 @@ export function StatCard({ label, value, delta, deltaType = 'up' }) {
   )
 }
 
-// ─── Table wrapper ────────────────────────────────────────────────────────────
-// On mobile (≤767px) the .fleet-table CSS transforms rows into cards, so
-// horizontal scroll is unnecessary there. We only need overflow-x-auto at md+
-// to handle wide tables on medium screens that still fit on one line.
+
 export function TableWrap({ children }) {
   return <div className="md:overflow-x-auto"><table className="fleet-table">{children}</table></div>
 }
@@ -93,11 +86,6 @@ export function TblAction({ children, onClick, variant = 'default', title, disab
   )
 }
 
-// ─── Modal ────────────────────────────────────────────────────────────────────
-// Mobile-first: full viewport below sm (≤640px) so iOS 320px screens have
-// every form control tappable without horizontal scroll. On sm+ the dialog
-// recovers its rounded centered form-card look with max-widths. Actions bar
-// stacks its buttons vertically on mobile so long labels don't clip.
 export function Modal({ title, children, onClose, actions = [], size = '' }) {
   const maxW = size === 'lg' ? 'sm:max-w-2xl' : 'sm:max-w-lg'
   return (
@@ -128,9 +116,7 @@ export function Modal({ title, children, onClose, actions = [], size = '' }) {
   )
 }
 
-// ─── Form helpers ─────────────────────────────────────────────────────────────
-// Supports mandatory asterisk (no space), per-field inline error, optional hint.
-// Eye toggle / calendar icon / ✕ clear land in the STEP B FormField component.
+
 export function FormGroup({ label, required, error, hint, children, htmlFor }) {
   return (
     <div className="mb-4">
@@ -152,9 +138,7 @@ export function Input({ ...props }) { return <input className={inputCls} {...pro
 export function Select({ children, ...props }) { return <select className={inputCls} {...props}>{children}</select> }
 export function Textarea({ ...props }) { return <textarea className={`${inputCls} resize-y min-h-[80px]`} {...props} /> }
 
-// ─── Filter bar ───────────────────────────────────────────────────────────────
-// Controlled via `values` + `onChange(key, val)` if the parent wants control;
-// otherwise falls back to internal state. Text fields show a ✕ clear when filled.
+
 export function FilterBar({ fields = [], values: controlledValues, onChange, onClear }) {
   const [internal, setInternal] = React.useState({})
   const values = controlledValues || internal
@@ -226,10 +210,6 @@ export function FilterBar({ fields = [], values: controlledValues, onChange, onC
   )
 }
 
-// ─── Pagination ───────────────────────────────────────────────────────────────
-// Size selector (10/20/50/100) + prev/next + numbered pages with ellipsis.
-// Buttons only fire their handlers when wired; without handlers they stay inert
-// (old callers still render without crashing — STEP C wires them page-by-page).
 export function Pagination({ total = 0, page = 1, limit = 10, onPageChange, onLimitChange, pageSizes = [10, 20, 50, 100] }) {
   const totalPages = Math.max(1, Math.ceil(total / limit))
   const from = total === 0 ? 0 : (page - 1) * limit + 1
@@ -298,7 +278,7 @@ export function Pagination({ total = 0, page = 1, limit = 10, onPageChange, onLi
   )
 }
 
-// ─── Loading ──────────────────────────────────────────────────────────────────
+
 export function Loading() {
   return (
     <div className="flex items-center justify-center gap-2 py-12 text-text2 text-[13px]">
@@ -307,7 +287,6 @@ export function Loading() {
   )
 }
 
-// ─── Empty state ──────────────────────────────────────────────────────────────
 export function Empty({ icon = '📭', text = 'No records found.', sub }) {
   return (
     <div className="text-center py-12 text-text2">
@@ -318,7 +297,7 @@ export function Empty({ icon = '📭', text = 'No records found.', sub }) {
   )
 }
 
-// ─── Tabs ─────────────────────────────────────────────────────────────────────
+
 export function Tabs({ tabs, active, onChange }) {
   return (
     <div className="flex gap-0.5 bg-surface2 rounded p-[3px] mb-5 w-fit">
@@ -332,9 +311,7 @@ export function Tabs({ tabs, active, onChange }) {
   )
 }
 
-// ─── Page header ─────────────────────────────────────────────────────────────
-// Mobile: title stacks above action buttons, buttons wrap as needed. sm+:
-// horizontal layout with actions right-aligned (original behavior).
+
 export function PageHeader({ title, subtitle, children }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-5 gap-3">
@@ -347,7 +324,6 @@ export function PageHeader({ title, subtitle, children }) {
   )
 }
 
-// ─── Progress bar ─────────────────────────────────────────────────────────────
 export function ProgressBar({ pct, color = 'bg-accent' }) {
   return (
     <div className="h-1.5 bg-surface2 rounded overflow-hidden mt-1.5">
@@ -356,8 +332,6 @@ export function ProgressBar({ pct, color = 'bg-accent' }) {
   )
 }
 
-// ─── Toast (imperative) ───────────────────────────────────────────────────────
-// Auto-appends a full stop when the message does not end in . ! or ?
 let _setToast = null
 export function registerToast(fn) { _setToast = fn }
 export function showToast(msg, type = 'success') {
@@ -388,41 +362,76 @@ export function ToastContainer() {
   )
 }
 
-export function PhoneInput({ value = '', onChange, placeholder = '98765 43210', required = false }) {
+export function PhoneInput({ value = '', onChange, placeholder, required = false }) {
   const CODES = [
-    { code: '+91', flag: '🇮🇳' },
-    { code: '+1',  flag: '🇺🇸' },
-    { code: '+44', flag: '🇬🇧' },
-    { code: '+61', flag: '🇦🇺' },
-    { code: '+971',flag: '🇦🇪' },
-    { code: '+65', flag: '🇸🇬' },
+    { code: '+971', flag: '🇦🇪', max: 10 },
+    { code: '+91',  flag: '🇮🇳', max: 10 },
+    { code: '+1',   flag: '🇺🇸', max: 10 },
+    { code: '+44',  flag: '🇬🇧', max: 10 },
+    { code: '+61',  flag: '🇦🇺', max: 10 },
+    { code: '+65',  flag: '🇸🇬', max: 10 },
   ]
-  function getCode(v) { return CODES.find(c => String(v).startsWith(c.code))?.code || '+91' }
-  function getNum(v)  { const c = CODES.find(x => String(v).startsWith(x.code)); return c ? String(v).slice(c.code.length).trimStart() : (v || '') }
-  const [cc, setCc]   = React.useState(() => getCode(value))
-  const [num, setNum] = React.useState(() => getNum(value))
-  const [err, setErr] = React.useState('')
-  function handleCc(e) { const c = e.target.value; setCc(c); onChange?.({ target: { value: num ? `${c} ${num}` : c } }) }
+  
+  const sorted = [...CODES].sort((a, b) => b.code.length - a.code.length)
+  function parseVal(v) {
+    const s = String(v || '')
+    const found = sorted.find(c => s.startsWith(c.code))
+    if (found) return { cc: found.code, num: s.slice(found.code.length).replace(/^\s+/, '') }
+    return { cc: '+91', num: s }
+  }
+  const init = parseVal(value)
+  const [cc,      setCc]      = React.useState(init.cc)
+  const [num,     setNum]     = React.useState(init.num)
+  const [touched, setTouched] = React.useState(false)
+  const conf  = CODES.find(c => c.code === cc) || CODES[1]
+  const valid = num.length === 0 || num.length === conf.max
+
+  function handleCc(e) {
+    const nc   = e.target.value
+    const nmax = (CODES.find(c => c.code === nc) || CODES[1]).max
+    const trimmed = num.slice(0, nmax)
+    setCc(nc)
+    setNum(trimmed)
+    setTouched(false)
+    onChange?.({ target: { value: trimmed ? `${nc} ${trimmed}` : '' } })
+  }
   function handleNum(e) {
-    const raw = e.target.value.replace(/\D/g, '').slice(0, 10)
+    const raw = e.target.value.replace(/\D/g, '').slice(0, conf.max)
     setNum(raw)
-    if (raw && raw.length !== 10) setErr('Phone must be 10 digits')
-    else setErr('')
     onChange?.({ target: { value: raw ? `${cc} ${raw}` : '' } })
   }
+
   return (
-    <div>
-      <div style={{display:'flex',gap:'6px'}}>
-        <select value={cc} onChange={handleCc}
-          className="h-9 px-2 rounded-md border border-border bg-surface2 text-text1 text-[12px] focus:outline-none focus:ring-1 focus:ring-accent"
-          style={{minWidth:'72px',flexShrink:0}}>
-          {CODES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}
+    <div className="w-full">
+      <div className="flex w-full" style={{ gap: '6px' }}>
+        <select
+          value={cc}
+          onChange={handleCc}
+          className="h-9 flex-shrink-0 rounded-md border border-border bg-surface2 text-text1 text-[12px] focus:outline-none focus:ring-1 focus:ring-accent"
+          style={{ width: '112px', paddingLeft: '5px', paddingRight: '2px' }}
+        >
+          {CODES.map(c => (
+            <option key={c.code} value={c.code}>{c.flag} {c.code}</option>
+          ))}
         </select>
-        <input type="tel" value={num} onChange={handleNum} placeholder={placeholder} required={required}
-          maxLength={10}
-          className="flex-1 h-9 px-3 rounded-md border border-border bg-surface2 text-text1 text-[13px] placeholder:text-text3 focus:outline-none focus:ring-1 focus:ring-accent" />
+        <input
+          type="tel"
+          value={num}
+          onChange={handleNum}
+          onBlur={() => setTouched(true)}
+          onFocus={() => setTouched(false)}
+          placeholder={placeholder || Array(conf.max + 1).join('0')}
+          required={required}
+          className="flex-1 min-w-0 h-9 px-3 rounded-md border border-border bg-surface2 text-text1 text-[13px] placeholder:text-text3 focus:outline-none focus:ring-1 focus:ring-accent"
+        />
       </div>
-      {err && <div className="text-[11px] text-red-500 mt-1">{err}</div>}
+      {touched && !valid && num.length > 0 && (
+        <div className="text-[11px] text-red-500 mt-1">
+          Enter exactly {conf.max} digits for {cc}
+        </div>
+      )}
     </div>
   )
 }
+
+

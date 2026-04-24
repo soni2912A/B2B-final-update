@@ -34,8 +34,7 @@ const toggleUserStatus = async (req, res) => {
   try {
     const user = await User.findOne({ _id: req.params.id, corporate: req.user.corporate });
     if (!user) return sendError(res, 404, 'User not found');
-    // Guard rail: don't let the currently-logged-in user deactivate their own
-    // account through this screen (they'd lock themselves out).
+   
     if (String(user._id) === String(req.user._id)) {
       return sendError(res, 400, 'You cannot deactivate your own account.');
     }
@@ -47,9 +46,7 @@ const toggleUserStatus = async (req, res) => {
   }
 };
 
-// Allowed edit fields: name and phone only. Email is identity (don't let the
-// UI rewrite it), role stays 'corporate_user', business/corporate/isActive are
-// managed via other routes.
+
 const updateCorporateUser = async (req, res) => {
   try {
     const { name, phone } = req.body || {};

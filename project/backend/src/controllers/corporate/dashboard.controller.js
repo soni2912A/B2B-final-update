@@ -25,7 +25,7 @@ const getDashboard = async (req, res) => {
         .populate('assignedTo', 'name'),
     ]);
 
-    // Shape matches frontend CorpDashboard expectations
+    
     return sendSuccess(res, 200, 'Dashboard fetched', {
       stats: {
         totalStaff,

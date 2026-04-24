@@ -14,7 +14,7 @@ const getDashboard = async (req, res) => {
     const endOfDay     = new Date(startOfDay); endOfDay.setHours(23, 59, 59, 999);
     const startOfMonth = new Date(startOfDay.getFullYear(), startOfDay.getMonth(), 1);
 
-    // For delivery staff: scope all delivery queries to their own assignments.
+    
     const deliveryBase = isStaff
       ? { business: businessId, assignedTo: staffId }
       : { business: businessId };
@@ -40,7 +40,7 @@ const getDashboard = async (req, res) => {
       ]),
       Invoice.countDocuments({ business: businessId, status: 'overdue' }),
       Order.find({ business: businessId }).sort({ createdAt: -1 }).limit(5).populate('corporate', 'companyName'),
-      // For staff: today's assigned deliveries list. For admin: upcoming scheduled.
+    
       isStaff
         ? Delivery.find({ ...deliveryBase, scheduledDate: { $gte: startOfDay, $lte: endOfDay } })
             .sort({ scheduledDate: 1 }).limit(10)
@@ -54,7 +54,7 @@ const getDashboard = async (req, res) => {
             .populate('assignedTo', 'name'),
     ]);
 
-    // Flat stats shape — matches frontend AdminDashboard expectations
+   
     return sendSuccess(res, 200, 'Dashboard data fetched', {
       stats: {
         totalOrders,

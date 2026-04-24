@@ -31,9 +31,7 @@ const listMyFeedback = async (req, res) => {
   } catch (error) { return handleError(res, error, 'listMyFeedback'); }
 };
 
-// Minimal schema alignment — Feedback.model has only { rating, comment }. Accept
-// the same two fields plus the order reference. Enforce one-per-order and
-// delivered-only at controller time so the frontend doesn't have to.
+
 const submitFeedback = async (req, res) => {
   try {
     const { order, rating, comment } = req.body;

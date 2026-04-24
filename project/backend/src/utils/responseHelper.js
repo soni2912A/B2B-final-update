@@ -6,7 +6,7 @@ const sendError = (res, statusCode = 500, message = 'Server Error', errors = nul
   return res.status(statusCode).json({ success: false, message, ...(errors && { errors }) });
 };
 
-// key = frontend-expected plural key (e.g. 'orders', 'corporates', 'invoices')
+
 const sendPaginated = (res, items, total, page, limit, key = 'items') => {
   return res.status(200).json({
     success: true,

@@ -1,9 +1,8 @@
 import React from 'react'
 import { Btn, Modal } from './index.jsx'
 
-// Rendered by AppShell when the idle-timeout hook fires `warning=true`.
-// Countdown ticks every second via the hook's `secondsLeft`. "Stay logged in"
-// dismisses and resets the timer; "Log out now" lets the user bail early.
+
+
 export default function IdleWarningModal({ secondsLeft, onStay, onLogout }) {
   const mm = Math.floor(secondsLeft / 60)
   const ss = String(secondsLeft % 60).padStart(2, '0')
