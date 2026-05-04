@@ -1,5 +1,4 @@
 
-
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { apiFetch, apiDownload, formatDate, formatTime } from '../../../utils/api.js'
 import { Badge, Card, PageHeader, FilterBar, TableWrap, TblAction, Btn, Loading, Modal, FormGroup, Input, Select, Textarea } from '../../ui/index.jsx'
@@ -520,11 +519,6 @@ export function EmailLogsPage() {
 
 const FORMAT_EXT = { Excel: 'xlsx', CSV: 'csv', PDF: 'pdf' }
 
-const IMPORT_ENTITIES = [
-  { label: 'Staff Members', icon: '👥', path: '/admin/staff',      filenameRoot: 'staff' },
-  { label: 'Products',      icon: '📦', path: '/admin/products',   filenameRoot: 'products' },
-  { label: 'Corporates',    icon: '🏢', path: '/admin/corporates', filenameRoot: 'corporates' },
-]
 
 const EXPORT_ENTITIES = [
   { label: 'Orders',        icon: '📋', path: '/admin/orders',     filenameRoot: 'orders',        formats: ['Excel', 'CSV', 'PDF'] },
@@ -535,11 +529,7 @@ const EXPORT_ENTITIES = [
 ]
 
 export function ImportExportPage() {
-  const [busy, setBusy]             = useState({})      // { [key]: true } while downloading/uploading
-  const [pendingFile, setPendingFile] = useState(null)  // { entity, file }
-  const [errorModal, setErrorModal] = useState(null)    // { entity, errors[] }
-  const fileInputRef                = useRef(null)
-  const currentEntityRef            = useRef(null)
+  const [busy, setBusy] = useState({})
 
   function setBusyKey(key, v) {
     setBusy(b => ({ ...b, [key]: v }))
@@ -558,183 +548,38 @@ export function ImportExportPage() {
     }
   }
 
-  async function doTemplate(entity) {
-    const key = `template:${entity.label}`
-    setBusyKey(key, true)
-    try {
-      await apiDownload(`${entity.path}/import/template`, `${entity.filenameRoot}-template.xlsx`)
-    } catch (err) {
-      showToast(err.message || 'Template download failed.', 'error')
-    } finally {
-      setBusyKey(key, false)
-    }
-  }
-
-  function triggerPick(entity) {
-    currentEntityRef.current = entity
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''     // allow re-uploading same filename
-      fileInputRef.current.click()
-    }
-  }
-
-  function onFileSelected(e) {
-    const file = e.target.files && e.target.files[0]
-    const entity = currentEntityRef.current
-    if (!file || !entity) return
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('File exceeds 5MB limit.', 'error')
-      return
-    }
-    setPendingFile({ entity, file })
-  }
-
-  async function confirmUpload() {
-    if (!pendingFile) return
-    const { entity, file } = pendingFile
-    const key = `upload:${entity.label}`
-    setBusyKey(key, true)
-    try {
-      const form = new FormData()
-      form.append('file', file)
-      const res = await apiFetch('POST', `${entity.path}/import`, form, true)
-      showToast(res?.message || `Imported ${res?.data?.imported ?? ''} record(s).`)
-      setPendingFile(null)
-    } catch (err) {
-      if (err.status === 413) {
-        showToast(err.message, 'error')
-      } else if (Array.isArray(err.errors) && err.errors.length > 0) {
-        setErrorModal({ entity, errors: err.errors })
-      } else {
-        showToast(err.message || 'Import failed.', 'error')
-      }
-      setPendingFile(null)
-    } finally {
-      setBusyKey(key, false)
-    }
-  }
-
   return (
     <div>
-      <PageHeader title="Data Import & Export" subtitle="Bulk data operations" />
+      <PageHeader title="Data Export" subtitle="Download your data in various formats" />
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        onChange={onFileSelected}
-        className="hidden"
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {}
-        <Card>
-          <div className="text-[14px] font-medium mb-1">Import Data</div>
-          <p className="text-xs text-text2 mb-4">Upload CSV or Excel files to bulk-add records</p>
-          {IMPORT_ENTITIES.map(entity => (
-            <div
-              key={entity.label}
-              className="border border-border rounded p-3 mb-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className="text-xl flex-shrink-0">{entity.icon}</span>
-                <div className="min-w-0">
-                  <div className="font-medium text-[13px] truncate">{entity.label}</div>
-                  <div className="text-[11px] text-text2">CSV or XLSX · max 5MB</div>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Btn size="sm" onClick={() => doTemplate(entity)} disabled={busy[`template:${entity.label}`]}>
-                  {busy[`template:${entity.label}`] ? '…' : '↓ Template'}
-                </Btn>
-                <Btn size="sm" variant="primary" onClick={() => triggerPick(entity)} disabled={busy[`upload:${entity.label}`]}>
-                  {busy[`upload:${entity.label}`] ? 'Uploading…' : '↑ Upload'}
-                </Btn>
-              </div>
+      <Card>
+        <div className="text-[14px] font-medium mb-1">Export Data</div>
+        <p className="text-xs text-text2 mb-4">Download your data in various formats</p>
+        {EXPORT_ENTITIES.map(entity => (
+          <div
+            key={entity.label}
+            className="border border-border rounded p-3 mb-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="text-xl flex-shrink-0">{entity.icon}</span>
+              <div className="font-medium text-[13px] truncate">{entity.label}</div>
             </div>
-          ))}
-        </Card>
-
-        {}
-        <Card>
-          <div className="text-[14px] font-medium mb-1">Export Data</div>
-          <p className="text-xs text-text2 mb-4">Download your data in various formats</p>
-          {EXPORT_ENTITIES.map(entity => (
-            <div
-              key={entity.label}
-              className="border border-border rounded p-3 mb-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className="text-xl flex-shrink-0">{entity.icon}</span>
-                <div className="font-medium text-[13px] truncate">{entity.label}</div>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {entity.formats.map(f => {
-                  const key = `export:${entity.label}:${FORMAT_EXT[f]}`
-                  return (
-                    <Btn key={f} size="sm" onClick={() => doExport(entity, f)} disabled={busy[key]}>
-                      {busy[key] ? '…' : `↓ ${f}`}
-                    </Btn>
-                  )
-                })}
-              </div>
+            <div className="flex flex-wrap gap-1.5">
+              {entity.formats.map(f => {
+                const key = `export:${entity.label}:${FORMAT_EXT[f]}`
+                return (
+                  <Btn key={f} size="sm" onClick={() => doExport(entity, f)} disabled={busy[key]}>
+                    {busy[key] ? '\u2026' : `\u2193 ${f}`}
+                  </Btn>
+                )
+              })}
             </div>
-          ))}
-        </Card>
-      </div>
-
-      {}
-      {pendingFile && (
-        <Modal
-          title="Confirm Import"
-          onClose={() => setPendingFile(null)}
-          actions={[
-            { label: busy[`upload:${pendingFile.entity.label}`] ? 'Uploading…' : 'Import', primary: true, onClick: confirmUpload, disabled: busy[`upload:${pendingFile.entity.label}`] },
-            { label: 'Cancel', onClick: () => setPendingFile(null) },
-          ]}
-        >
-          <div className="text-[13px] text-text1">
-            Upload <span className="font-semibold">{pendingFile.file.name}</span> as <span className="font-semibold">{pendingFile.entity.label}</span>?
           </div>
-          <div className="text-[12px] text-text2 mt-2">
-            Existing records will not be affected. Duplicate rows will be rejected.
-          </div>
-        </Modal>
-      )}
-
-      {}
-      {errorModal && (
-        <Modal
-          title={`${errorModal.entity.label} — Import Failed`}
-          onClose={() => setErrorModal(null)}
-          actions={[{ label: 'Close', onClick: () => setErrorModal(null) }]}
-        >
-          <div className="text-[12px] text-text2 mb-3">No rows were imported. Fix the issues below and retry.</div>
-          <div className="max-h-[280px] overflow-y-auto border border-border rounded">
-            <table className="w-full text-[12px]">
-              <thead className="bg-surface2 sticky top-0">
-                <tr><th className="text-left px-2 py-1.5">Row</th><th className="text-left px-2 py-1.5">Field</th><th className="text-left px-2 py-1.5">Error</th></tr>
-              </thead>
-              <tbody>
-                {errorModal.errors.slice(0, 10).map((e, i) => (
-                  <tr key={i} className="border-t border-border">
-                    <td className="px-2 py-1.5 font-mono">{e.row}</td>
-                    <td className="px-2 py-1.5 font-mono">{e.field}</td>
-                    <td className="px-2 py-1.5 text-red-700">{e.error}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {errorModal.errors.length > 10 && (
-            <div className="text-[11px] text-text3 mt-2">… and {errorModal.errors.length - 10} more.</div>
-          )}
-        </Modal>
-      )}
+        ))}
+      </Card>
     </div>
   )
 }
-
 const EMPTY_INVITE = { email: '', name: '', role: 'staff', roleId: '' }
 const EMPTY_EDIT   = { name: '', role: 'staff', roleId: '' }
 

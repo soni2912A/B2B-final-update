@@ -163,7 +163,7 @@ export function CorpStaffPage() {
     <div>
       <PageHeader title="Staff" subtitle={`${staff.length} staff members${deptFilter ? ` · ${filteredStaff.length} in ${deptFilter}` : ''}`}>
         <Tabs tabs={[{ id:'grid',label:'Grid' },{ id:'list',label:'List' }]} active={view} onChange={setView} />
-        <Btn size="sm" onClick={() => setShowImport(true)}>↑ Bulk Upload</Btn>
+        {/* <Btn size="sm" onClick={() => setShowImport(true)}>↑ Bulk Upload</Btn> */}
         <Btn variant="primary" onClick={() => setShowAdd(true)}>+ Add Staff</Btn>
       </PageHeader>
 

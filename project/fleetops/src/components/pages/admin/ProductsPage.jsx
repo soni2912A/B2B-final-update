@@ -160,7 +160,7 @@ export default function ProductsPage() {
             ✎ Bulk edit ({selected.size})
           </Btn>
         )}
-        <Btn size="sm" onClick={openImport} title="Import products from CSV or Excel">↑ Import</Btn>
+        {/* <Btn size="sm" onClick={openImport} title="Import products from CSV or Excel">↑ Import</Btn> */}
         <Btn size="sm" onClick={exportCSV} title="Export catalog to CSV">↓ Export</Btn>
         <Btn variant="primary" onClick={() => setShowAdd(true)}>+ Add Product</Btn>
       </PageHeader>

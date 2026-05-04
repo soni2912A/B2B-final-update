@@ -22,8 +22,10 @@ export function AppProvider({ children }) {
       const p = window.location.pathname
       if (p === '/register' || p === '/free-trial') return 'register'
       if (p === '/login') return 'login'
+    
+      if (p === '/' || p === '') return 'landing'
     }
-    return 'login'
+    return 'landing'
   })
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
@@ -35,7 +37,7 @@ export function AppProvider({ children }) {
     setTheme(t => {
       const next = t === 'dark' ? 'light' : 'dark'
       document.documentElement.setAttribute('data-theme', next)
-      try { localStorage.setItem('theme', next) } catch { /* private mode — toggle still works in-session */ }
+      try { localStorage.setItem('theme', next) } catch {  }
       return next
     })
   }
@@ -53,7 +55,7 @@ export function AppProvider({ children }) {
       const res = await apiFetch('GET', `${notifBasePath(r)}?limit=10`)
       setNotifications(res.data?.notifications || [])
       if (typeof res.data?.unreadCount === 'number') setUnreadCount(res.data.unreadCount)
-    } catch { /* silent — will retry on next open */ }
+    } catch {  }
   }, [role])
 
   const refreshUnreadCount = useCallback(async (forRole) => {
@@ -62,7 +64,7 @@ export function AppProvider({ children }) {
     try {
       const res = await apiFetch('GET', `${notifBasePath(r)}/unread-count`)
       setUnreadCount(res.data?.count ?? 0)
-    } catch { /* silent */ }
+    } catch {  }
   }, [role])
 
   async function markOneRead(id) {
@@ -70,7 +72,7 @@ export function AppProvider({ children }) {
     setUnreadCount(c => Math.max(0, c - 1))
     try {
       await apiFetch('PATCH', `${notifBasePath(role)}/${id}/read`)
-    } catch { /* state already optimistically updated */ }
+    } catch {  }
   }
 
   async function markAllRead() {
@@ -95,7 +97,7 @@ export function AppProvider({ children }) {
     setNotifications([]); setUnreadCount(0)
     localStorage.removeItem('auth_token')
     localStorage.removeItem('auth_user')
-    setAuthView('login')
+    setAuthView('landing')
   }
 
   useEffect(() => {
@@ -114,8 +116,8 @@ export function AppProvider({ children }) {
           setUser(fresh); setRole(fresh.role); setLoginRole(fresh.role)
           localStorage.setItem('auth_user', JSON.stringify(fresh))
         }
-      }).catch(() => { /* handled by unauth listener or offline */ })
-    } catch { /* corrupt storage — stay on login */ }
+      }).catch(() => { })
+    } catch {  }
   }, [])
 
   useEffect(() => {
@@ -142,11 +144,12 @@ export function AppProvider({ children }) {
   function showLogin() { setAuthView('login') }
   function showForgot() { setAuthView('forgot') }
   function showAdminRegister() { setAuthView('admin-register') }
+  function showLanding() { setAuthView('landing') }
 
   return (
     <Ctx.Provider value={{
       user, token, role, page, navigate, login, logout,
-      authView, showRegister, showLogin, showForgot, showAdminRegister,
+      authView, showRegister, showLogin, showForgot, showAdminRegister, showLanding,
       sidebarOpen, setSidebarOpen,
       notifications, unreadCount,
       loadNotifications, refreshUnreadCount, markOneRead, markAllRead,

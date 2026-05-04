@@ -19,6 +19,13 @@ const subscriptionSchema = new mongoose.Schema({
   activationToken: { type: String, select: false },
   paidAt: { type: Date },
   paymentReference: { type: String },
+
+  // Coupon applied at registration
+  couponCode:     { type: String, default: null },
+  discountAmount: { type: Number, default: 0 },
+
+  // Referral code used at registration
+  referralCode: { type: String, default: null },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Subscription', subscriptionSchema);

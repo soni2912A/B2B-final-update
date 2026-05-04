@@ -7,6 +7,10 @@ const { tenantScope } = require('../middleware/tenant.middleware');
 
 router.use('/auth', require('./auth/auth.routes'));
 
+// Public route — no auth required
+const { getPublicPlans } = require('../controllers/superAdmin/subscription.controller');
+router.get('/public/plans', getPublicPlans);
+
 const adminAccess  = [protect, authorize('admin', 'staff'), tenantScope];
 const adminOnly    = [protect, authorize('admin'), tenantScope];
 const superAdmin   = [protect, authorize('super_admin')];
@@ -47,10 +51,35 @@ router.use('/corporate/tickets',        ...corpAccess, require('./corporate/tick
 router.use('/corporate/notifications',  ...corpAccess, require('./corporate/notification.routes'));
 router.use('/corporate/discounts',       ...corpAccess, require('./corporate/discount.routes'));
 
-router.use('/super-admin/businesses',    ...superAdmin, require('./superAdmin/business.routes'));
-router.use('/super-admin/subscriptions', ...superAdmin, require('./superAdmin/subscription.routes'));
-router.use('/super-admin/login-logs',    ...superAdmin, require('./superAdmin/loginLog.routes'));
-router.use('/super-admin/notifications', ...superAdmin, require('./superAdmin/notification.routes'));
-router.use('/super-admin/roles',         ...superAdmin, require('./superAdmin/role.routes'));
+router.use('/super-admin/businesses',     ...superAdmin, require('./superAdmin/business.routes'));
+router.use('/super-admin/subscriptions',  ...superAdmin, require('./superAdmin/subscription.routes'));
+router.use('/super-admin/login-logs',     ...superAdmin, require('./superAdmin/loginLog.routes'));
+router.use('/super-admin/notifications',  ...superAdmin, require('./superAdmin/notification.routes'));
+router.use('/super-admin/roles',          ...superAdmin, require('./superAdmin/role.routes'));
+router.use('/super-admin/announcements',  ...superAdmin, require('./superAdmin/announcement.routes'));
+router.use('/super-admin/coupons',        ...superAdmin, require('./superAdmin/coupon.routes'));
+router.use('/super-admin/referrals',      ...superAdmin, require('./superAdmin/referral.routes'));
+
+// Admin referral panel
+router.use('/admin/referral',    ...adminOnly,    require('./superAdmin/referral.routes'));
+// Corporate referral panel
+router.use('/corporate/referral',...corpAccess,   require('./superAdmin/referral.routes'));
+
+// Shared – any authenticated user can read their announcements
+router.use('/announcements', protect, require('./announcements.routes'));
+
+// Public – coupon validation (called from register pages before payment)
+const { validateCoupon } = require('../controllers/superAdmin/coupon.controller');
+router.post('/public/coupons/validate', validateCoupon);
+
+// Public – referral click tracking
+const { recordClick } = require('../controllers/referral.controller');
+router.post('/public/referrals/click', recordClick);
+
+// Report data – admin summary & email schedule
+router.use('/report-data', ...adminOnly, require('./reportdata.routes'));
+
+// Public chatbot – no auth required
+router.use('/chat', require('./chat.routes'));
 
 module.exports = router;

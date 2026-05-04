@@ -14,6 +14,7 @@ export const NAV_ADMIN = [
   { id: 'admin-occasions',    icon: '🎉', label: 'Occasions',          perm: 'occasions:view' },
   { id: 'admin-feedback',     icon: '⭐', label: 'Feedback',           perm: 'feedback:view' },
   { id: 'admin-discounts',    icon: '🏷️', label: 'Discounts',          perm: 'discounts:view' },
+  { id: 'admin-referral',     icon: '🔗', label: 'My Referral' },
   { section: 'System' },
   { id: 'admin-tickets',      icon: '🎫', label: 'Support Tickets',    perm: 'tickets:view' },
   { id: 'admin-inventory',    icon: '📁', label: 'Inventory',          perm: 'products:view' },
@@ -48,6 +49,7 @@ export const NAV_CORPORATE = [
   { section: 'Other' },
   { id: 'corp-tickets',     icon: '🎫', label: 'Support Tickets' },
   { id: 'corp-feedback',    icon: '⭐', label: 'Feedback' },
+  { id: 'corp-referral',    icon: '🔗', label: 'My Referral' },
   { id: 'corp-notif-prefs', icon: '🔔', label: 'Notifications' },
 ]
 
@@ -55,8 +57,12 @@ export const NAV_SUPER = [
   { section: 'Platform' },
   { id: 'sa-businesses',    icon: '🏗️', label: 'Businesses' },
   { id: 'sa-subscriptions', icon: '💎', label: 'Subscriptions' },
+  { id: 'sa-coupons',       icon: '🏷️', label: 'Coupon Codes' },
+  { id: 'sa-referrals',     icon: '🔗', label: 'Referrals' },
+  { id: 'sa-my-referral',   icon: '🪄', label: 'My Referral' },
   { id: 'sa-roles',         icon: '🛡️', label: 'Roles & Permissions' },
   { id: 'sa-logs',          icon: '🔍', label: 'Platform Logs' },
+  { id: 'sa-announcements', icon: '📣', label: 'Announcements' },
 ]
 
 export const NAV_MAP = {
@@ -119,4 +125,5 @@ export const PAGE_TITLES = {
   'sa-subscriptions':   'Subscriptions',
   'sa-roles':           'Roles & Permissions',
   'sa-logs':            'Platform Logs',
+  'sa-my-referral':     'My Referral',
 }

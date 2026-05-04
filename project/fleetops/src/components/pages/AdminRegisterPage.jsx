@@ -26,9 +26,25 @@ export default function AdminRegisterPage() {
   const [plansLoading, setPlansLoading] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState(null)
 
+  // Coupon code
+  const [couponInput, setCouponInput]   = useState('')
+  const [couponResult, setCouponResult] = useState(null)  // { code, type, value, maxDiscountAmount }
+  const [couponError, setCouponError]   = useState('')
+  const [couponLoading, setCouponLoading] = useState(false)
+
+  // Referral code (pre-filled from URL ?ref=)
+  const [referralCode, setReferralCode] = useState('')
+
   const [pendingReg, setPendingReg] = useState(null)   // { businessId, subscriptionId, activationToken, plan, adminEmail }
 
   // Load plans when the user reaches step 2.
+  useEffect(() => {
+    // Pre-fill referral code from URL ?ref=
+    const params = new URLSearchParams(window.location.search)
+    const ref = params.get('ref')
+    if (ref) setReferralCode(ref)
+  }, [])
+
   useEffect(() => {
     if (step !== 2 || plans.length > 0) return
     setPlansLoading(true)
@@ -62,6 +78,30 @@ export default function AdminRegisterPage() {
     setStep(2)
   }
 
+  async function applyCoupon() {
+    if (!couponInput.trim()) { setCouponError('Enter a coupon code.'); return }
+    setCouponLoading(true); setCouponError(''); setCouponResult(null)
+    try {
+      const res = await apiFetch('POST', '/public/coupons/validate', {
+        code: couponInput.trim().toUpperCase(),
+        planId: selectedPlan?._id,
+      })
+      setCouponResult(res.data?.coupon)
+    } catch (err) {
+      setCouponError(err.message || 'Invalid coupon code.')
+    } finally { setCouponLoading(false) }
+  }
+
+  function getDiscountedPrice(plan) {
+    if (!couponResult || !plan) return plan?.price || 0
+    if (couponResult.type === 'percentage') {
+      const disc = (plan.price * couponResult.value) / 100
+      const capped = couponResult.maxDiscountAmount ? Math.min(disc, couponResult.maxDiscountAmount) : disc
+      return Math.max(0, plan.price - capped)
+    }
+    return Math.max(0, plan.price - couponResult.value)
+  }
+
   async function confirmPlan() {
     if (!selectedPlan) { setError('Pick a plan to continue.'); return }
     setError(''); setSaving(true)
@@ -73,6 +113,8 @@ export default function AdminRegisterPage() {
         businessName: form.businessName.trim(),
         phone: form.phone.trim() || undefined,
         planId: selectedPlan._id,
+        couponCode:   couponResult ? couponResult.code : undefined,
+        referralCode: referralCode || undefined,
       })
       setPendingReg(res.data)
       setStep(3)
@@ -199,7 +241,66 @@ export default function AdminRegisterPage() {
                 })}
               </div>
             )}
-            <div className="flex gap-2">
+            {/* ── Coupon Code ── */}
+            {selectedPlan && (
+              <div className="mt-4 p-4 rounded-xl border border-border bg-surface2">
+                <div className="text-[13px] font-semibold text-text1 mb-3">🏷️ Have a Coupon Code?</div>
+                <div className="flex gap-2">
+                  <input
+                    value={couponInput}
+                    onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponResult(null); setCouponError('') }}
+                    placeholder="Enter coupon code"
+                    style={{
+                      flex: 1, padding: '8px 12px', borderRadius: 10,
+                      border: '1px solid var(--border)', background: 'var(--surface)',
+                      color: 'var(--text1)', fontSize: 13, fontFamily: 'monospace',
+                      letterSpacing: '0.08em', textTransform: 'uppercase', outline: 'none',
+                    }}
+                  />
+                  <Btn onClick={applyCoupon} disabled={couponLoading || !couponInput.trim()}>
+                    {couponLoading ? '…' : 'Apply'}
+                  </Btn>
+                </div>
+                {couponError && <div className="mt-2 text-red-500 text-[12px]">{couponError}</div>}
+                {couponResult && (
+                  <div className="mt-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-[12px] flex items-center gap-2 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-300">
+                    <span>✓</span>
+                    <span>
+                      <strong>{couponResult.code}</strong> applied!{' '}
+                      {couponResult.type === 'percentage'
+                        ? `${couponResult.value}% off${couponResult.maxDiscountAmount ? ` (max ₹${couponResult.maxDiscountAmount})` : ''}`
+                        : `₹${couponResult.value} off`}
+                      {' '} → Final price:{' '}
+                      <strong>{formatCurrency(getDiscountedPrice(selectedPlan))}</strong>
+                      <span className="line-through text-text3 ml-1">{formatCurrency(selectedPlan.price)}</span>
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── Referral Code ── */}
+            <div className="mt-3 p-4 rounded-xl border border-border bg-surface2">
+              <div className="text-[13px] font-semibold text-text1 mb-2">🔗 Referral Code (optional)</div>
+              <input
+                value={referralCode}
+                onChange={e => setReferralCode(e.target.value.toUpperCase())}
+                placeholder="Enter referral code if you have one"
+                style={{
+                  width: '100%', padding: '8px 12px', borderRadius: 10,
+                  border: '1px solid var(--border)', background: 'var(--surface)',
+                  color: 'var(--text1)', fontSize: 13, fontFamily: 'monospace',
+                  letterSpacing: '0.06em', outline: 'none', boxSizing: 'border-box',
+                }}
+              />
+              {referralCode && (
+                <div className="mt-1.5 text-[11px] text-purple-600 dark:text-purple-300">
+                  ✓ Referral code will be applied at checkout
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2 mt-4">
               <Btn onClick={() => setStep(1)} disabled={saving}>← Back</Btn>
               <Btn variant="primary" onClick={confirmPlan} disabled={saving || !selectedPlan}>
                 {saving ? 'Registering…' : 'Register & proceed to payment →'}

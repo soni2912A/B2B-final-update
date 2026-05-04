@@ -1,3 +1,4 @@
+
 const Subscription = require('../../models/Subscription.model');
 const Business = require('../../models/Business.model');
 const { sendSuccess, sendError } = require('../../utils/responseHelper');
@@ -52,4 +53,26 @@ const updateSubscription = async (req, res) => {
   } catch (error) { return handleError(res, error, 'updateSubscription'); }
 };
 
-module.exports = { getAllSubscriptions, createSubscription, updateSubscription };
+const deleteSubscription = async (req, res) => {
+  try {
+    const subscription = await Subscription.findById(req.params.id);
+    if (!subscription) return sendError(res, 404, 'Subscription not found');
+    if (!subscription.business) {
+      const inUse = await Business.findOne({ subscription: subscription._id });
+      if (inUse) return sendError(res, 400, 'Cannot delete a plan that is currently assigned to one or more businesses.');
+    }
+    await Subscription.findByIdAndDelete(req.params.id);
+    return sendSuccess(res, 200, 'Subscription deleted');
+  } catch (error) { return handleError(res, error, 'deleteSubscription'); }
+};
+
+const getPublicPlans = async (req, res) => {
+  try {
+    const subscriptions = await Subscription.find({ business: null, isActive: { $ne: false } })
+      .sort({ price: 1 })
+      .select('name price billingCycle maxCorporates maxStaffPerCorporate maxOrders features');
+    return sendSuccess(res, 200, 'Plans fetched', { subscriptions });
+  } catch (error) { return handleError(res, error, 'getPublicPlans'); }
+};
+
+module.exports = { getAllSubscriptions, createSubscription, updateSubscription, deleteSubscription, getPublicPlans };

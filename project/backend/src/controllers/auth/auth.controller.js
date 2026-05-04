@@ -8,6 +8,9 @@ const { generateToken, generateRefreshToken, verifyRefreshToken } = require('../
 const { sendSuccess, sendError } = require('../../utils/responseHelper');
 const emailService = require('../../services/email.service');
 const notificationService = require('../../services/notification.service');
+const referralService = require('../../services/referral.service');
+const { applyCoupon } = require('../superAdmin/coupon.controller');
+const { triggerReferralReward } = require('../referral.controller');
 
 const hashToken = (raw) => crypto.createHash('sha256').update(String(raw)).digest('hex');
 
@@ -131,7 +134,7 @@ const changePassword = async (req, res) => {
 // ─── M02 — Corporate self-registration ───────────────────────────────────────
 const register = async (req, res) => {
   try {
-    const { name, email, password, companyName, phone, contactPerson } = req.body;
+    const { name, email, password, companyName, phone, contactPerson, referralCode } = req.body;
     if (!name || !email || !password || !companyName) {
       return sendError(res, 400, 'name, email, password, and companyName are required');
     }
@@ -146,6 +149,13 @@ const register = async (req, res) => {
     }
     if (!business) business = await Business.findOne().sort({ createdAt: 1 });
     if (!business) return sendError(res, 500, 'No business configured. Run `npm run seed` first.');
+
+    // ── Referral: validate code before creating anything ──────────────────────
+    // Invalid codes are silently ignored — we never block registration over them
+    let validReferral = null;
+    if (referralCode) {
+      validReferral = await referralService.validateCode(referralCode, business._id);
+    }
 
     const corporate = await Corporate.create({
       business: business._id,
@@ -169,6 +179,16 @@ const register = async (req, res) => {
       isActive: isDev,           // auto-activate in dev
       emailVerifyToken: isDev ? undefined : crypto.createHash('sha256').update(verifyToken).digest('hex'),
     });
+
+    // ── Referral: record conversion after user is successfully created ─────────
+    if (validReferral) {
+      referralService
+        .recordConversion(validReferral._id, {
+          referredUserId:      user._id,
+          referredCorporateId: corporate._id,
+        })
+        .catch(err => console.error('[register] referral conversion failed:', err.message));
+    }
 
     notificationService.notifyNewCorporate(corporate, user._id)
       .catch(err => console.error('[register] notifyNewCorporate failed:', err.message));
@@ -301,6 +321,7 @@ const registerAdmin = async (req, res) => {
     const {
       name, email, password,
       businessName, phone, planId,
+      couponCode, referralCode,
     } = req.body;
 
     if (!name || !email || !password || !businessName || !planId) {
@@ -329,9 +350,21 @@ const registerAdmin = async (req, res) => {
 
     const rawActivationToken = crypto.randomBytes(32).toString('hex');
 
+    // ── Coupon: calculate discounted price ──────────────────────────────────
+    const { discountAmount, finalPrice } = await applyCoupon(
+      couponCode, plan.price, plan._id, business._id
+    );
+
+    // ── Referral: validate code ─────────────────────────────────────────────
+    let validAdminReferral = null;
+    if (referralCode) {
+      validAdminReferral = await referralService.validateCode(referralCode, business._id)
+        .catch(() => null);
+    }
+
     const subscription = await Subscription.create({
       name: plan.name,
-      price: plan.price,
+      price: finalPrice,         // discounted price stored
       billingCycle: plan.billingCycle,
       maxCorporates: plan.maxCorporates,
       maxStaffPerCorporate: plan.maxStaffPerCorporate,
@@ -341,6 +374,9 @@ const registerAdmin = async (req, res) => {
       plan: plan._id,
       status: 'pending',
       activationToken: hashToken(rawActivationToken),
+      couponCode:      couponCode   || undefined,
+      discountAmount:  discountAmount || 0,
+      referralCode:    referralCode  || undefined,
     });
 
     business.subscription = subscription._id;
@@ -353,19 +389,29 @@ const registerAdmin = async (req, res) => {
       phone: phone || undefined,
       role: 'admin',
       business: business._id,
-      isActive: false,        
-      isEmailVerified: true,   
+      isActive: false,
+      isEmailVerified: true,
     });
+
+    // Store referral conversion (reward only after payment)
+    if (validAdminReferral) {
+      referralService.recordConversion(validAdminReferral._id, {
+        referredUserId: user._id,
+      }).catch(err => console.error('[registerAdmin] referral conversion failed:', err.message));
+    }
 
     return sendSuccess(res, 201, 'Registration received — complete payment to activate.', {
       businessId: business._id,
       subscriptionId: subscription._id,
       activationToken: rawActivationToken,
       plan: {
-        name: plan.name,
-        price: plan.price,
-        billingCycle: plan.billingCycle,
+        name:          plan.name,
+        originalPrice: plan.price,
+        discountAmount,
+        finalPrice,
+        billingCycle:  plan.billingCycle,
       },
+      couponApplied: discountAmount > 0 ? { code: couponCode, savedAmount: discountAmount } : null,
       adminEmail: user.email,
     });
   } catch (error) {
@@ -414,6 +460,23 @@ const activateSubscription = async (req, res) => {
       { business: subscription.business, role: 'admin' },
       { isActive: true },
     );
+
+    // ── Trigger referral reward if this subscription was via a referral ─────
+    if (subscription.referralCode) {
+      const referral = await require('../../models/Referral.model').findOne({
+        code: subscription.referralCode.toUpperCase(),
+      });
+      if (referral) {
+        // Find the pending conversion for the admin user of this business
+        const adminUser = await User.findOne({ business: subscription.business, role: 'admin' });
+        const conv = adminUser
+          ? referral.conversions.find(c => String(c.referredUser) === String(adminUser._id) && !c.rewardGiven)
+          : null;
+        if (conv) {
+          triggerReferralReward({ referralId: referral._id, conversionId: conv._id }).catch(() => {});
+        }
+      }
+    }
 
     return sendSuccess(res, 200, 'Subscription activated.', {
       subscriptionId: subscription._id,

@@ -1,5 +1,6 @@
 import React from 'react'
 import { AppProvider, useApp } from './AppContext.jsx'
+import LandingPage from './components/pages/LandingPage.jsx'
 import LoginPage from './components/pages/LoginPage.jsx'
 import RegisterPage from './components/pages/RegisterPage.jsx'
 import AdminRegisterPage from './components/pages/AdminRegisterPage.jsx'
@@ -15,7 +16,7 @@ import useIdleTimeout from './hooks/useIdleTimeout.js'
 import { hasPermission, navItemFor } from './data/navigation.js'
 import { useEffect, useState } from 'react'
 
-// Admin pages
+
 import AdminDashboard from './components/pages/admin/AdminDashboard.jsx'
 import OrdersPage     from './components/pages/admin/OrdersPage.jsx'
 import DeliveriesPage from './components/pages/admin/DeliveriesPage.jsx'
@@ -29,11 +30,17 @@ import { OccasionsPage, FeedbackPage, DiscountsPage, TicketsPage, InventoryPage,
 import { EmailTemplatesPage, LoginLogsPage, EmailLogsPage, ImportExportPage, AdminUsersPage, SettingsPage } from './components/pages/admin/SystemPages.jsx'
 import RolesPermissionsPage from './components/pages/admin/RolesPermissionsPage.jsx'
 
-// Corporate pages
+
 import { CorpDashboard, CorpStaffPage, PlaceOrderPage, CorpUsersPage, CorpOccasionsPage, CorpTicketsPage, CorpFeedbackPage } from './components/pages/corporate/CorpPages.jsx'
 
-// Super admin pages
+
 import { SABusinessesPage, SASubscriptionsPage, SAPlatformLogsPage } from './components/pages/superadmin/SAPages.jsx'
+import { SAAnnouncementsPage } from './components/pages/superadmin/SAAnnouncementsPage.jsx'
+import { SACouponsPage }       from './components/pages/superadmin/SACouponsPage.jsx'
+import { SAReferralsPage }     from './components/pages/superadmin/SAReferralsPage.jsx'
+import ReferralPage            from './components/pages/ReferralPage.jsx'
+import ChatbotWidget from './components/ui/ChatbotWidget.jsx'
+import AnnouncementBanner from './components/ui/AnnouncementBanner.jsx'
 
 const ROUTE_MAP = {
   'admin-dashboard':    AdminDashboard,
@@ -74,10 +81,16 @@ const ROUTE_MAP = {
   'sa-subscriptions': SASubscriptionsPage,
   'sa-roles':         () => <RolesPermissionsPage scope="system" />,
   'sa-logs':          SAPlatformLogsPage,
+  'sa-announcements': SAAnnouncementsPage,
+  'sa-coupons':       SACouponsPage,
+  'sa-referrals':     SAReferralsPage,
+  'sa-my-referral':   ReferralPage,
+  'admin-referral':   ReferralPage,
+  'corp-referral':    ReferralPage,
 }
 
 function AppShell() {
-  const { user, page, sidebarOpen, setSidebarOpen, authView, logout } = useApp()
+  const { user, page, sidebarOpen, setSidebarOpen, authView, logout, showLogin, showRegister } = useApp()
   const [showOnboarding, setShowOnboarding] = useState(false)
 
  
@@ -115,6 +128,7 @@ function AppShell() {
   }
 
   if (!user) {
+    if (authView === 'landing')       return (<><LandingPage onLogin={showLogin} onRegister={showRegister} /><ChatbotWidget theme="dark" /></>)
     if (authView === 'register')       return <RegisterPage />
     if (authView === 'admin-register') return <AdminRegisterPage />
     if (authView === 'forgot')         return <ForgotPasswordPage />
@@ -136,7 +150,7 @@ function AppShell() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Sidebar overlay for mobile */}
+      {}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/30 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -145,6 +159,7 @@ function AppShell() {
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar />
+        <AnnouncementBanner user={user} />
         <main className="flex-1 overflow-y-auto p-6 bg-bg">
           {!canAccess ? (
             <AccessDenied perm={currentPerm} />
@@ -158,6 +173,7 @@ function AppShell() {
       </div>
 
       <ToastContainer />
+      <ChatbotWidget />
 
       {warning && (
         <IdleWarningModal
