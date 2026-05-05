@@ -38,6 +38,7 @@ import { SABusinessesPage, SASubscriptionsPage, SAPlatformLogsPage } from './com
 import { SAAnnouncementsPage } from './components/pages/superadmin/SAAnnouncementsPage.jsx'
 import { SACouponsPage }       from './components/pages/superadmin/SACouponsPage.jsx'
 import { SAReferralsPage }     from './components/pages/superadmin/SAReferralsPage.jsx'
+import { SAPushNotificationsPage } from './components/pages/superadmin/SAPushNotificationsPage.jsx'
 import ReferralPage            from './components/pages/ReferralPage.jsx'
 import ChatbotWidget from './components/ui/ChatbotWidget.jsx'
 import AnnouncementBanner from './components/ui/AnnouncementBanner.jsx'
@@ -81,12 +82,12 @@ const ROUTE_MAP = {
   'sa-subscriptions': SASubscriptionsPage,
   'sa-roles':         () => <RolesPermissionsPage scope="system" />,
   'sa-logs':          SAPlatformLogsPage,
-  'sa-announcements': SAAnnouncementsPage,
-  'sa-coupons':       SACouponsPage,
-  'sa-referrals':     SAReferralsPage,
+  'sa-announcements':      SAAnnouncementsPage,
+  'sa-coupons':            SACouponsPage,
+  'sa-referrals':          SAReferralsPage,
+  'sa-push-notifications': SAPushNotificationsPage,
   'sa-my-referral':   ReferralPage,
   'admin-referral':   ReferralPage,
-  'corp-referral':    ReferralPage,
 }
 
 function AppShell() {

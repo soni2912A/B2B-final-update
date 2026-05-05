@@ -49,20 +49,20 @@ export const NAV_CORPORATE = [
   { section: 'Other' },
   { id: 'corp-tickets',     icon: '🎫', label: 'Support Tickets' },
   { id: 'corp-feedback',    icon: '⭐', label: 'Feedback' },
-  { id: 'corp-referral',    icon: '🔗', label: 'My Referral' },
   { id: 'corp-notif-prefs', icon: '🔔', label: 'Notifications' },
 ]
 
 export const NAV_SUPER = [
   { section: 'Platform' },
-  { id: 'sa-businesses',    icon: '🏗️', label: 'Businesses' },
-  { id: 'sa-subscriptions', icon: '💎', label: 'Subscriptions' },
-  { id: 'sa-coupons',       icon: '🏷️', label: 'Coupon Codes' },
-  { id: 'sa-referrals',     icon: '🔗', label: 'Referrals' },
-  { id: 'sa-my-referral',   icon: '🪄', label: 'My Referral' },
-  { id: 'sa-roles',         icon: '🛡️', label: 'Roles & Permissions' },
-  { id: 'sa-logs',          icon: '🔍', label: 'Platform Logs' },
-  { id: 'sa-announcements', icon: '📣', label: 'Announcements' },
+  { id: 'sa-businesses',         icon: '🏗️', label: 'Businesses' },
+  { id: 'sa-subscriptions',      icon: '💎', label: 'Subscriptions' },
+  { id: 'sa-coupons',            icon: '🏷️', label: 'Coupon Codes' },
+  { id: 'sa-referrals',          icon: '🔗', label: 'Referrals' },
+  { id: 'sa-my-referral',        icon: '🪄', label: 'My Referral' },
+  { id: 'sa-roles',              icon: '🛡️', label: 'Roles & Permissions' },
+  { id: 'sa-logs',               icon: '🔍', label: 'Platform Logs' },
+  { id: 'sa-announcements',      icon: '📣', label: 'Announcements' },
+  { id: 'sa-push-notifications', icon: '🔔', label: 'Push Notifications' },
 ]
 
 export const NAV_MAP = {
@@ -126,4 +126,5 @@ export const PAGE_TITLES = {
   'sa-roles':           'Roles & Permissions',
   'sa-logs':            'Platform Logs',
   'sa-my-referral':     'My Referral',
+  'sa-push-notifications': 'Push Notifications',
 }

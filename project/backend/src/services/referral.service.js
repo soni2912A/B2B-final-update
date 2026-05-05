@@ -1,42 +1,35 @@
 const crypto = require('crypto');
 const Referral = require('../models/Referral.model');
 
-/**
- * Generate a short, uppercase alphanumeric code.
- * Collision is astronomically unlikely at this scale but we guard anyway.
- */
 const generateCode = () =>
-  crypto.randomBytes(4).toString('hex').toUpperCase(); // e.g. "A3F7C12B"
+  crypto.randomBytes(4).toString('hex').toUpperCase(); 
+const createFreshReferral = async (userId, businessId, maxUses = 10) => {
+  let code;
+  let attempts = 0;
+  while (attempts < 5) {
+    code = generateCode();
+    const exists = await Referral.findOne({ code });
+    if (!exists) break;
+    attempts++;
+  }
+  return Referral.create({
+    business: businessId || null,
+    referrer: userId,
+    code,
+    maxUses,
+  });
+};
 
-/**
- * Get or create the referral record for a user.
- * Each user gets exactly one referral code (super_admin has null businessId).
- */
+
 const getOrCreateReferral = async (userId, businessId) => {
-  let referral = await Referral.findOne({ referrer: userId });
+  let referral = await Referral.findOne({ referrer: userId, isActive: true });
   if (!referral) {
-    let code;
-    let attempts = 0;
-    // Retry until we get a unique code (almost always first try)
-    while (attempts < 5) {
-      code = generateCode();
-      const exists = await Referral.findOne({ code });
-      if (!exists) break;
-      attempts++;
-    }
-    referral = await Referral.create({
-      business: businessId || null,
-      referrer: userId,
-      code,
-    });
+    referral = await createFreshReferral(userId, businessId);
   }
   return referral;
 };
 
-/**
- * Validate a referral code on registration.
- * Returns the Referral doc if valid, null otherwise.
- */
+
 const validateCode = async (code, businessId) => {
   if (!code) return null;
   const referral = await Referral.findOne({
@@ -46,12 +39,11 @@ const validateCode = async (code, businessId) => {
   });
   if (!referral) return null;
   if (referral.expiresAt && referral.expiresAt < new Date()) return null;
+  if (referral.totalConversions >= referral.maxUses) return null;
   return referral;
 };
 
-/**
- * Record a successful conversion after a new user signs up via a referral link.
- */
+
 const recordConversion = async (referralId, { referredUserId, referredCorporateId } = {}) => {
   const referral = await Referral.findByIdAndUpdate(
     referralId,
@@ -67,12 +59,25 @@ const recordConversion = async (referralId, { referredUserId, referredCorporateI
     },
     { new: true }
   );
-  return referral;
+
+  let newReferral = null;
+  if (referral && referral.totalConversions >= referral.maxUses) {
+    referral.isActive = false;
+    referral.expiredAt = new Date();
+    newReferral = await createFreshReferral(
+      referral.referrer,
+      referral.business,
+      referral.maxUses
+    );
+    referral.supersededBy = newReferral.code;
+    await referral.save();
+    console.log(`[referral] Code ${referral.code} expired after ${referral.maxUses} uses. New code: ${newReferral.code}`);
+  }
+
+  return { referral, newReferral };
 };
 
-/**
- * Increment click counter (called from frontend when link is opened — optional).
- */
+
 const recordClick = async (code, businessId) => {
   await Referral.updateOne(
     { code: code.toUpperCase(), business: businessId },
@@ -80,4 +85,9 @@ const recordClick = async (code, businessId) => {
   );
 };
 
-module.exports = { getOrCreateReferral, validateCode, recordConversion, recordClick };
+
+const updateMaxUses = async (referralId, maxUses) => {
+  return Referral.findByIdAndUpdate(referralId, { maxUses }, { new: true });
+};
+
+module.exports = { getOrCreateReferral, validateCode, recordConversion, recordClick, updateMaxUses, createFreshReferral };

@@ -19,6 +19,10 @@ exports.getMyReferral = async (req, res) => {
     const path    = (isSuperAdmin || req.user.role === 'admin') ? '/register-admin' : '/register';
     const link    = `${appUrl}${path}?ref=${referral.code}`;
 
+    // Include discount info — read from env or DB config if available
+    const discountType  = process.env.REFERRAL_DISCOUNT_TYPE  || 'percentage';
+    const discountValue = Number(process.env.REFERRAL_DISCOUNT_VALUE || 10);
+
     const recentConversions = referral.conversions
       .slice(-10)
       .reverse()
@@ -37,8 +41,12 @@ exports.getMyReferral = async (req, res) => {
         link,
         totalClicks:      referral.totalClicks,
         totalConversions: referral.totalConversions,
+        maxUses:          referral.maxUses,
+        usesRemaining:    Math.max(0, referral.maxUses - referral.totalConversions),
         recentConversions,
         pendingRewards:   referral.conversions.filter(c => !c.rewardGiven).length,
+        discountType,
+        discountValue,
       },
     });
   } catch (err) {
@@ -66,11 +74,21 @@ exports.recordClick = async (req, res) => {
    ───────────────────────────────────────────────────────── */
 exports.getAllReferrals = async (req, res) => {
   try {
-    const referrals = await Referral.find()
+    const User = require('../models/User.model');
+
+    // Only show referrals belonging to admin or super_admin users
+    const allowedUsers = await User.find({
+      role: { $in: ['admin', 'super_admin'] },
+    }).select('_id');
+
+    const allowedIds = allowedUsers.map(u => u._id);
+
+    const referrals = await Referral.find({ referrer: { $in: allowedIds } })
       .populate('referrer', 'name email role')
       .populate('business', 'name')
       .sort({ totalConversions: -1 })
       .limit(200);
+
     return sendSuccess(res, 200, 'OK', { referrals });
   } catch (err) {
     return sendError(res, 500, err.message);
@@ -78,8 +96,24 @@ exports.getAllReferrals = async (req, res) => {
 };
 
 /* ─────────────────────────────────────────────────────────
+   PATCH /super-admin/referrals/:id/max-uses  — set usage limit
+   ───────────────────────────────────────────────────────── */
+exports.updateMaxUses = async (req, res) => {
+  try {
+    const { maxUses } = req.body;
+    if (!maxUses || isNaN(maxUses) || maxUses < 1) {
+      return sendError(res, 400, 'maxUses must be a positive number.');
+    }
+    const referral = await referralSvc.updateMaxUses(req.params.id, Number(maxUses));
+    if (!referral) return sendError(res, 404, 'Referral not found.');
+    return sendSuccess(res, 200, 'maxUses updated.', { referral });
+  } catch (err) {
+    return sendError(res, 500, err.message);
+  }
+};
+
+/* ─────────────────────────────────────────────────────────
    Internal — called from auth.controller after first payment
-   Reward is ONLY given after subscription is activated
    ───────────────────────────────────────────────────────── */
 exports.triggerReferralReward = async ({ referralId, conversionId }) => {
   try {
@@ -89,7 +123,6 @@ exports.triggerReferralReward = async ({ referralId, conversionId }) => {
     const conv = referral.conversions.id(conversionId);
     if (!conv || conv.rewardGiven) return;
 
-    // ── Reward policy: ₹500 credit ──────────────────────
     conv.rewardGiven  = true;
     conv.rewardType   = 'credit';
     conv.rewardValue  = 500;

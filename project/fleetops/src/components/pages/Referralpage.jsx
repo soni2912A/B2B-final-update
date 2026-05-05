@@ -47,6 +47,13 @@ export default function ReferralPage() {
   const target    = isAdmin ? 'new businesses (admins)' : 'other companies (corporates)'
   const regLabel  = isAdmin ? 'Admin Registration' : 'Corporate Registration'
 
+  // Format discount for display
+  function formatDiscount(type, value) {
+    if (!type || !value) return null
+    if (type === 'percentage') return `${value}% OFF`
+    return `₹${value} OFF`
+  }
+
   if (loading) return <div className="p-8"><Loading /></div>
 
   return (
@@ -75,6 +82,21 @@ export default function ReferralPage() {
             </div>
           ))}
         </div>
+        {/* Discount tag */}
+        {data && data.discountValue > 0 && (
+          <div className="mt-3 pt-3 border-t border-purple-200 dark:border-purple-700 flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 bg-white dark:bg-purple-800/40 rounded-lg px-3 py-2 border border-purple-200 dark:border-purple-600">
+              <span className="text-[18px]">🎟️</span>
+              <div>
+                <div className="text-[10px] text-purple-600 dark:text-purple-300 font-semibold uppercase tracking-wider">Referral Discount</div>
+                <div className="text-[15px] font-bold text-purple-900 dark:text-purple-100">{formatDiscount(data.discountType, data.discountValue)}</div>
+              </div>
+            </div>
+            <div className="text-[12px] text-purple-700 dark:text-purple-300">
+              People who register with your code get <strong>{formatDiscount(data.discountType, data.discountValue)}</strong> on their subscription.
+            </div>
+          </div>
+        )}
       </div>
 
       {data ? (
@@ -84,12 +106,12 @@ export default function ReferralPage() {
             {[
               { label: 'Referral Code',    value: data.code,             mono: true, icon: '🔑' },
               { label: 'Link Clicks',      value: data.totalClicks,      icon: '👆' },
-              { label: 'Conversions',      value: data.totalConversions, icon: '🎯' },
-              { label: 'Pending Rewards',  value: data.pendingRewards,   icon: '⏳' },
+              { label: 'Conversions',      value: `${data.totalConversions} / ${data.maxUses}`, icon: '🎯' },
+              { label: 'Uses Remaining',   value: data.usesRemaining,    icon: data.usesRemaining <= 2 ? '⚠️' : '✅', highlight: data.usesRemaining <= 2 },
             ].map(s => (
               <Card key={s.label} className="!p-4 text-center">
                 <div className="text-2xl mb-1">{s.icon}</div>
-                <div className={`text-xl font-bold text-text1 ${s.mono ? 'font-mono tracking-widest text-accent' : ''}`}>
+                <div className={`text-xl font-bold ${s.mono ? 'font-mono tracking-widest text-accent' : s.highlight ? 'text-orange-500' : 'text-text1'}`}>
                   {s.value}
                 </div>
                 <div className="text-xs text-text2 mt-0.5">{s.label}</div>

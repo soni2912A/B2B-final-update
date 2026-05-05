@@ -18,8 +18,8 @@ const couponCodeSchema = new mongoose.Schema({
   // which subscription plans this applies to (empty = all plans)
   applicablePlans: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Subscription' }],
 
-  // how many total uses allowed (null = unlimited)
-  usageLimit: { type: Number, default: null },
+  // how many total uses allowed (null = unlimited); default 10 for new coupons
+  usageLimit: { type: Number, default: 10 },
 
   // how many times it's been used
   usedCount: { type: Number, default: 0 },

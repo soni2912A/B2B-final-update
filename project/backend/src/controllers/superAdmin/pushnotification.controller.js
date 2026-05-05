@@ -3,7 +3,6 @@ const Notification = require('../../models/Notification.model');
 const User = require('../../models/User.model');
 const { sendSuccess, sendError } = require('../../utils/responseHelper');
 
-// ── PushNotificationLog model (defined at top so it's available to all handlers) ──
 const pushLogSchema = new mongoose.Schema({
   title:     { type: String, required: true },
   message:   { type: String, required: true },
@@ -16,7 +15,7 @@ const PushNotificationLog =
   mongoose.models.PushNotificationLog ||
   mongoose.model('PushNotificationLog', pushLogSchema);
 
-// ── Audience → roles map ──────────────────────────────────────────────────────
+
 const AUDIENCE_ROLE_MAP = {
   all:       ['admin', 'staff', 'corporate_user'],
   admin:     ['admin'],
@@ -24,7 +23,6 @@ const AUDIENCE_ROLE_MAP = {
   staff:     ['staff'],
 };
 
-// POST /super-admin/push-notifications
 exports.sendPushNotification = async (req, res) => {
   try {
     const { title, message, audience = 'all' } = req.body;
@@ -41,7 +39,6 @@ exports.sendPushNotification = async (req, res) => {
       return sendSuccess(res, 200, 'No active users found for that audience.', { sentCount: 0 });
     }
 
-    // Fan-out: create one Notification doc per user
     const notifDocs = users.map(u => ({
       recipient: u._id,
       title:     title.trim(),
@@ -50,7 +47,7 @@ exports.sendPushNotification = async (req, res) => {
     }));
     await Notification.insertMany(notifDocs);
 
-    // Save history log
+    
     const log = await PushNotificationLog.create({
       title:     title.trim(),
       message:   message.trim(),
@@ -69,7 +66,7 @@ exports.sendPushNotification = async (req, res) => {
   }
 };
 
-// GET /super-admin/push-notifications
+
 exports.getPushNotifications = async (req, res) => {
   try {
     const logs = await PushNotificationLog.find()
@@ -82,7 +79,6 @@ exports.getPushNotifications = async (req, res) => {
   }
 };
 
-// DELETE /super-admin/push-notifications/:id
 exports.deletePushNotification = async (req, res) => {
   try {
     const log = await PushNotificationLog.findByIdAndDelete(req.params.id);

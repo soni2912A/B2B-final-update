@@ -7,7 +7,7 @@ const TYPE_OPTS  = [{ v: 'percentage', l: '% Percentage' }, { v: 'fixed', l: 'â‚
 
 const EMPTY = {
   code: '', description: '', type: 'percentage', value: '',
-  maxDiscountAmount: '', usageLimit: '', validFrom: '', validUntil: '', isActive: true,
+  maxDiscountAmount: '', usageLimit: '10', validFrom: '', validUntil: '', isActive: true,
 }
 
 export function SACouponsPage() {
@@ -134,7 +134,7 @@ function CouponModal({ initial = null, onClose, onSaved }) {
         code:              form.code.toUpperCase().trim(),
         value:             Number(form.value),
         maxDiscountAmount: form.maxDiscountAmount ? Number(form.maxDiscountAmount) : null,
-        usageLimit:        form.usageLimit        ? Number(form.usageLimit)        : null,
+        usageLimit:        form.usageLimit !== '' && form.usageLimit !== null ? Number(form.usageLimit) : null,
       }
       if (mode === 'create') await apiFetch('POST', '/super-admin/coupons', payload)
       else                   await apiFetch('PATCH', `/super-admin/coupons/${initial._id}`, payload)
@@ -172,8 +172,8 @@ function CouponModal({ initial = null, onClose, onSaved }) {
             <Input type="number" value={form.maxDiscountAmount} onChange={set('maxDiscountAmount')} placeholder="e.g. 2000" min="0" />
           </FormGroup>
         )}
-        <FormGroup label="Usage Limit (blank = unlimited)">
-          <Input type="number" value={form.usageLimit} onChange={set('usageLimit')} placeholder="e.g. 100" min="1" />
+        <FormGroup label="Usage Limit (default: 10, blank = unlimited)">
+          <Input type="number" value={form.usageLimit} onChange={set('usageLimit')} placeholder="e.g. 10" min="1" />
         </FormGroup>
         <FormGroup label="Valid From">
           <Input type="date" value={form.validFrom} onChange={set('validFrom')} />

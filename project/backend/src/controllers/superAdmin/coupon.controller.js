@@ -41,7 +41,7 @@ exports.createCoupon = async (req, res) => {
       type, value,
       maxDiscountAmount: maxDiscountAmount || null,
       applicablePlans:   applicablePlans   || [],
-      usageLimit:        usageLimit        || null,
+      usageLimit:        usageLimit != null ? Number(usageLimit) : 10,
       validFrom:  new Date(validFrom),
       validUntil: new Date(validUntil),
       createdBy:  req.user._id,
